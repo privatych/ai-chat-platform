@@ -12,10 +12,9 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.38.0",
-    "better-sqlite3": "^11.7.0"
+    "postgres": "^3.4.4"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.12",
     "drizzle-kit": "^0.30.0",
     "typescript": "^5.3.3"
   }

@@ -1,37 +1,38 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { pgTable, text, integer, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Users table
-export const users = sqliteTable('users', {
-  id: text('id').primaryKey(),
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
   email: text('email').notNull().unique(),
   name: text('name'),
   passwordHash: text('password_hash').notNull(),
-  tier: text('tier', { enum: ['free', 'premium'] }).notNull().default('free'),
+  tier: text('tier').notNull().default('free'),
   messagesUsedToday: integer('messages_used_today').notNull().default(0),
-  messagesResetAt: text('messages_reset_at'),
-  createdAt: text('created_at').notNull().default(new Date().toISOString()),
+  messagesResetAt: timestamp('messages_reset_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
 // Chats table
-export const chats = sqliteTable('chats', {
-  id: text('id').primaryKey(),
-  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+export const chats = pgTable('chats', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   model: text('model').notNull(),
-  createdAt: text('created_at').notNull().default(new Date().toISOString()),
-  updatedAt: text('updated_at').notNull().default(new Date().toISOString()),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 // Messages table
-export const messages = sqliteTable('messages', {
-  id: text('id').primaryKey(),
-  chatId: text('chat_id').notNull().references(() => chats.id, { onDelete: 'cascade' }),
-  role: text('role', { enum: ['user', 'assistant', 'system'] }).notNull(),
+export const messages = pgTable('messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  chatId: uuid('chat_id').notNull().references(() => chats.id, { onDelete: 'cascade' }),
+  role: text('role').notNull(),
   content: text('content').notNull(),
   model: text('model'),
-  parentMessageId: text('parent_message_id'),
-  createdAt: text('created_at').notNull().default(new Date().toISOString()),
+  parentMessageId: uuid('parent_message_id'),
+  attachments: text('attachments'), // JSON array of attachments
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
 // Relations
