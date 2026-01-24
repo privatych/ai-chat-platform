@@ -2,11 +2,8 @@ import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { pgTable, text, integer, timestamp, uuid } from 'drizzle-orm/pg-core';
 
-const connectionString = process.env.DATABASE_URL!;
-
-if (!connectionString) {
-  throw new Error('DATABASE_URL environment variable is not set');
-}
+// Allow build to complete without DATABASE_URL (will fail at runtime if actually used)
+const connectionString = process.env.DATABASE_URL || 'postgresql://placeholder';
 
 const client = postgres(connectionString);
 
