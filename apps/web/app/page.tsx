@@ -1,33 +1,62 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
-import { Brain, Zap, Shield, DollarSign, Sparkles, MessageSquare } from "lucide-react";
+import { Brain, Zap, Shield, DollarSign, Sparkles, MessageSquare, ArrowRight, Check } from "lucide-react";
 
 export default function Home() {
   return (
     <div className="min-h-screen">
+      {/* Navigation */}
+      <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto max-w-6xl px-4">
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Brain className="h-6 w-6 text-primary" />
+              <span className="text-xl font-bold">AI Chat Platform</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <Link href="/login">
+                <Button variant="ghost">Войти</Button>
+              </Link>
+              <Link href="/register">
+                <Button>Начать бесплатно</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
-      <section className="px-4 py-20 md:py-32 bg-gradient-to-b from-background to-secondary/20">
+      <section className="relative px-4 py-20 md:py-32 overflow-hidden">
+        {/* Background gradients */}
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
+        </div>
+
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
-              <Sparkles className="w-4 h-4" />
+          <div className="text-center space-y-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border bg-background/50 backdrop-blur text-sm font-medium">
+              <Sparkles className="w-4 h-4 text-primary" />
               <span>Powered by OpenRouter</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
               AI Chat Platform
             </h1>
 
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              Общайтесь с 20+ лучшими AI моделями в одном месте.
+              Общайтесь с <span className="text-primary font-semibold">20+ лучшими AI моделями</span> в одном месте.
               GPT-4, Claude, Gemini, DeepSeek и другие.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link href="/register">
-                <Button size="lg" className="text-lg px-8">
+                <Button size="lg" className="text-lg px-8 group">
                   Начать бесплатно
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               <Link href="/login">
@@ -37,8 +66,9 @@ export default function Home() {
               </Link>
             </div>
 
-            <p className="text-sm text-muted-foreground">
-              Бесплатный тариф: 50 сообщений в день
+            <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+              <Check className="h-4 w-4 text-green-500" />
+              Бесплатный тариф: 50 сообщений в день. Кредитная карта не требуется.
             </p>
           </div>
         </div>
@@ -57,71 +87,52 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
-                <Brain className="w-10 h-10 mb-2 text-primary" />
-                <CardTitle>20+ AI Моделей</CardTitle>
-                <CardDescription>
-                  GPT-4 Turbo, Claude 3.5, Gemini Pro, DeepSeek, Llama 3, Mistral и другие
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Zap className="w-10 h-10 mb-2 text-primary" />
-                <CardTitle>Быстрые ответы</CardTitle>
-                <CardDescription>
-                  Потоковая передача ответов в реальном времени для мгновенного взаимодействия
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <MessageSquare className="w-10 h-10 mb-2 text-primary" />
-                <CardTitle>История чатов</CardTitle>
-                <CardDescription>
-                  Все ваши диалоги сохраняются и доступны с любого устройства
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Shield className="w-10 h-10 mb-2 text-primary" />
-                <CardTitle>Безопасность</CardTitle>
-                <CardDescription>
-                  Ваши данные защищены. Никакая информация не передаётся третьим лицам
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <DollarSign className="w-10 h-10 mb-2 text-primary" />
-                <CardTitle>Доступные цены</CardTitle>
-                <CardDescription>
-                  Начните бесплатно, платите только за то, что используете
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Sparkles className="w-10 h-10 mb-2 text-primary" />
-                <CardTitle>Простой интерфейс</CardTitle>
-                <CardDescription>
-                  Интуитивный дизайн, не требующий обучения. Просто начните общаться
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            {[
+              {
+                icon: Brain,
+                title: "20+ AI Моделей",
+                desc: "GPT-4 Turbo, Claude 3.5, Gemini Pro, DeepSeek, Llama 3, Mistral и другие"
+              },
+              {
+                icon: Zap,
+                title: "Быстрые ответы",
+                desc: "Потоковая передача ответов в реальном времени для мгновенного взаимодействия"
+              },
+              {
+                icon: MessageSquare,
+                title: "История чатов",
+                desc: "Все ваши диалоги сохраняются и доступны с любого устройства"
+              },
+              {
+                icon: Shield,
+                title: "Безопасность",
+                desc: "Ваши данные защищены. Никакая информация не передаётся третьим лицам"
+              },
+              {
+                icon: DollarSign,
+                title: "Доступные цены",
+                desc: "Начните бесплатно, платите только за то, что используете"
+              },
+              {
+                icon: Sparkles,
+                title: "Простой интерфейс",
+                desc: "Интуитивный дизайн, не требующий обучения. Просто начните общаться"
+              }
+            ].map((feature, idx) => (
+              <Card key={idx} className="border-2 hover:border-primary/50 transition-colors">
+                <CardHeader>
+                  <feature.icon className="w-10 h-10 mb-2 text-primary" />
+                  <CardTitle>{feature.title}</CardTitle>
+                  <CardDescription>{feature.desc}</CardDescription>
+                </CardHeader>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Models Section */}
-      <section className="px-4 py-20 bg-secondary/20">
+      <section className="px-4 py-20 bg-secondary/30">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -134,22 +145,23 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { name: 'GPT-4 Turbo', company: 'OpenAI', desc: 'Самая мощная модель' },
-              { name: 'Claude 3.5 Sonnet', company: 'Anthropic', desc: 'Лучшая для анализа' },
-              { name: 'Gemini Pro', company: 'Google', desc: 'Быстрая и точная' },
-              { name: 'DeepSeek V3', company: 'DeepSeek', desc: 'Новейшая технология' },
-              { name: 'Llama 3 70B', company: 'Meta', desc: 'Open source модель' },
-              { name: 'Mistral Large', company: 'Mistral AI', desc: 'Европейская модель' },
-              { name: 'GPT-3.5 Turbo', company: 'OpenAI', desc: 'Быстрая и доступная' },
-              { name: 'Claude 3 Haiku', company: 'Anthropic', desc: 'Молниеносная скорость' },
+              { name: 'GPT-4 Turbo', company: 'OpenAI', desc: 'Самая мощная модель', color: 'from-green-500 to-emerald-600' },
+              { name: 'Claude 3.5 Sonnet', company: 'Anthropic', desc: 'Лучшая для анализа', color: 'from-orange-500 to-red-600' },
+              { name: 'Gemini Pro', company: 'Google', desc: 'Быстрая и точная', color: 'from-blue-500 to-cyan-600' },
+              { name: 'DeepSeek V3', company: 'DeepSeek', desc: 'Новейшая технология', color: 'from-purple-500 to-pink-600' },
+              { name: 'Llama 3 70B', company: 'Meta', desc: 'Open source модель', color: 'from-indigo-500 to-purple-600' },
+              { name: 'Mistral Large', company: 'Mistral AI', desc: 'Европейская модель', color: 'from-yellow-500 to-orange-600' },
+              { name: 'GPT-3.5 Turbo', company: 'OpenAI', desc: 'Быстрая и доступная', color: 'from-teal-500 to-green-600' },
+              { name: 'Claude 3 Haiku', company: 'Anthropic', desc: 'Молниеносная скорость', color: 'from-rose-500 to-red-600' },
             ].map((model, idx) => (
-              <Card key={idx}>
+              <Card key={idx} className="group hover:shadow-lg transition-all">
                 <CardHeader>
+                  <div className={`w-full h-1 rounded-full bg-gradient-to-r ${model.color} mb-4`} />
                   <CardTitle className="text-lg">{model.name}</CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
                     {model.company}
                   </CardDescription>
-                  <p className="text-sm mt-2">{model.desc}</p>
+                  <p className="text-sm mt-2 text-muted-foreground">{model.desc}</p>
                 </CardHeader>
               </Card>
             ))}
@@ -170,7 +182,7 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <Card className="relative">
+            <Card className="relative border-2">
               <CardHeader>
                 <CardTitle className="text-2xl">Free</CardTitle>
                 <div className="text-4xl font-bold mt-4">
@@ -178,35 +190,30 @@ export default function Home() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <p className="flex items-center gap-2">
-                    <span className="text-primary">✓</span>
-                    50 сообщений в день
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <span className="text-primary">✓</span>
-                    Доступ к базовым моделям
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <span className="text-primary">✓</span>
-                    История чатов 7 дней
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <span className="text-primary">✓</span>
-                    До 4000 токенов на запрос
-                  </p>
+                <div className="space-y-3">
+                  {[
+                    '50 сообщений в день',
+                    'Доступ к базовым моделям',
+                    'История чатов 7 дней',
+                    'До 4000 токенов на запрос'
+                  ].map((item, idx) => (
+                    <p key={idx} className="flex items-center gap-2">
+                      <Check className="h-5 w-5 text-primary" />
+                      <span>{item}</span>
+                    </p>
+                  ))}
                 </div>
                 <Link href="/register" className="block">
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full" size="lg">
                     Начать бесплатно
                   </Button>
                 </Link>
               </CardContent>
             </Card>
 
-            <Card className="relative border-primary shadow-lg">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
+            <Card className="relative border-2 border-primary shadow-xl">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <span className="bg-gradient-to-r from-primary to-purple-600 text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
                   Популярный
                 </span>
               </div>
@@ -217,30 +224,22 @@ export default function Home() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <p className="flex items-center gap-2">
-                    <span className="text-primary">✓</span>
-                    1000 сообщений в день
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <span className="text-primary">✓</span>
-                    Доступ ко всем моделям
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <span className="text-primary">✓</span>
-                    Безлимитная история
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <span className="text-primary">✓</span>
-                    До 32000 токенов на запрос
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <span className="text-primary">✓</span>
-                    Приоритетная поддержка
-                  </p>
+                <div className="space-y-3">
+                  {[
+                    '1000 сообщений в день',
+                    'Доступ ко всем моделям',
+                    'Безлимитная история',
+                    'До 32000 токенов на запрос',
+                    'Приоритетная поддержка'
+                  ].map((item, idx) => (
+                    <p key={idx} className="flex items-center gap-2">
+                      <Check className="h-5 w-5 text-primary" />
+                      <span>{item}</span>
+                    </p>
+                  ))}
                 </div>
                 <Link href="/register" className="block">
-                  <Button className="w-full">
+                  <Button className="w-full" size="lg">
                     Оформить Premium
                   </Button>
                 </Link>
@@ -251,8 +250,9 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="px-4 py-20 bg-primary text-primary-foreground">
-        <div className="container mx-auto max-w-4xl text-center">
+      <section className="relative px-4 py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary to-purple-600 -z-10" />
+        <div className="container mx-auto max-w-4xl text-center text-primary-foreground">
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
             Готовы начать работу с AI?
           </h2>
@@ -260,24 +260,28 @@ export default function Home() {
             Присоединяйтесь к тысячам пользователей, которые уже используют нашу платформу
           </p>
           <Link href="/register">
-            <Button size="lg" variant="secondary" className="text-lg px-8">
+            <Button size="lg" variant="secondary" className="text-lg px-8 group">
               Создать бесплатный аккаунт
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="px-4 py-8 border-t">
+      <footer className="px-4 py-8 border-t bg-secondary/30">
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-muted-foreground">
-              © 2026 AI Chat Platform. Все права защищены.
-            </p>
+            <div className="flex items-center gap-2">
+              <Brain className="h-5 w-5 text-primary" />
+              <p className="text-sm text-muted-foreground">
+                © 2026 AI Chat Platform. Все права защищены.
+              </p>
+            </div>
             <div className="flex gap-6 text-sm text-muted-foreground">
-              <Link href="#" className="hover:text-foreground">Условия использования</Link>
-              <Link href="#" className="hover:text-foreground">Конфиденциальность</Link>
-              <Link href="#" className="hover:text-foreground">Поддержка</Link>
+              <Link href="#" className="hover:text-foreground transition-colors">Условия использования</Link>
+              <Link href="#" className="hover:text-foreground transition-colors">Конфиденциальность</Link>
+              <Link href="#" className="hover:text-foreground transition-colors">Поддержка</Link>
             </div>
           </div>
         </div>

@@ -73,6 +73,19 @@ class ApiClient {
     return this.request<any[]>('/api/chat');
   }
 
+  async deleteChat(chatId: string) {
+    return this.request<{ message: string }>(`/api/chat/${chatId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async renameChat(chatId: string, title: string) {
+    return this.request<any>(`/api/chat/${chatId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ title }),
+    });
+  }
+
   // SSE streaming for messages
   async streamMessage(
     chatId: string,

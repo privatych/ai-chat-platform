@@ -6,11 +6,16 @@ import { useAuthStore } from '@/lib/stores/auth-store';
 import { apiClient } from '@/lib/api-client';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { ChatInterface } from '@/components/chat/ChatInterface';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { Button } from '@/components/ui/button';
+import { Brain, LogOut, User } from 'lucide-react';
 import { AI_MODELS } from '@ai-chat/shared';
+import { toast } from 'sonner';
+import Link from 'next/link';
 
 export default function ChatPage() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, clearAuth } = useAuthStore();
   const [chats, setChats] = useState<any[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState('openai/gpt-3.5-turbo');
@@ -32,11 +37,38 @@ export default function ChatPage() {
   };
 
   const createNewChat = async () => {
-    const response = await apiClient.createChat('New Chat', selectedModel);
+    const response = await apiClient.createChat('Новый чат', selectedModel);
     if (response.success && response.data) {
       setChats([response.data, ...chats]);
       setCurrentChatId(response.data.id);
+      toast.success('Чат создан');
     }
+  };
+
+  const handleRenameChat = async (chatId: string, newTitle: string) => {
+    const response = await apiClient.renameChat(chatId, newTitle);
+    if (response.success && response.data) {
+      setChats(chats.map(chat =>
+        chat.id === chatId ? { ...chat, title: newTitle } : chat
+      ));
+      toast.success('Чат переименован');
+    }
+  };
+
+  const handleDeleteChat = async (chatId: string) => {
+    const response = await apiClient.deleteChat(chatId);
+    if (response.success) {
+      setChats(chats.filter(chat => chat.id !== chatId));
+      if (currentChatId === chatId) {
+        setCurrentChatId(null);
+      }
+      toast.success('Чат удалён');
+    }
+  };
+
+  const handleLogout = () => {
+    clearAuth();
+    router.push('/');
   };
 
   const availableModels = user?.subscriptionTier === 'premium'
@@ -44,19 +76,48 @@ export default function ChatPage() {
     : [...AI_MODELS.free];
 
   return (
-    <div className="flex h-screen">
-      <ChatSidebar
-        chats={chats}
-        currentChatId={currentChatId}
-        onSelectChat={setCurrentChatId}
-        onNewChat={createNewChat}
-      />
-      <ChatInterface
-        chatId={currentChatId}
-        selectedModel={selectedModel}
-        onModelChange={setSelectedModel}
-        availableModels={availableModels}
-      />
+    <div className="flex flex-col h-screen">
+      {/* Top Navigation */}
+      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex h-16 items-center px-4 gap-4">
+          <Link href="/" className="flex items-center gap-2">
+            <Brain className="h-6 w-6 text-primary" />
+            <span className="text-xl font-bold">AI Chat Platform</span>
+          </Link>
+
+          <div className="ml-auto flex items-center gap-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <User className="h-4 w-4" />
+              <span>{user?.email}</span>
+              <span className="px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                {user?.subscriptionTier}
+              </span>
+            </div>
+            <ThemeToggle />
+            <Button variant="ghost" size="icon" onClick={handleLogout}>
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Chat Interface */}
+      <div className="flex flex-1 overflow-hidden">
+        <ChatSidebar
+          chats={chats}
+          currentChatId={currentChatId}
+          onSelectChat={setCurrentChatId}
+          onNewChat={createNewChat}
+          onRenameChat={handleRenameChat}
+          onDeleteChat={handleDeleteChat}
+        />
+        <ChatInterface
+          chatId={currentChatId}
+          selectedModel={selectedModel}
+          onModelChange={setSelectedModel}
+          availableModels={availableModels}
+        />
+      </div>
     </div>
   );
 }
