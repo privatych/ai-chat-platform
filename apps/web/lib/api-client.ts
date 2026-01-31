@@ -61,6 +61,13 @@ class ApiClient {
     return this.request<any>('/api/auth/me');
   }
 
+  async getUsageStats() {
+    return this.request<{
+      messagesUsedToday: number;
+      tokensUsedToday: number;
+    }>('/api/auth/usage');
+  }
+
   // Chat endpoints
   async createChat(title: string, model: string) {
     return this.request<any>('/api/chat', {

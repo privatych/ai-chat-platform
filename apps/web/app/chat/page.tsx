@@ -7,8 +7,8 @@ import { apiClient } from '@/lib/api-client';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { ChatInterface } from '@/components/chat/ChatInterface';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Button } from '@/components/ui/button';
-import { Brain, LogOut, User } from 'lucide-react';
+import { UserMenu } from '@/components/user-menu';
+import { Brain } from 'lucide-react';
 import { AI_MODELS } from '@ai-chat/shared';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -85,18 +85,9 @@ export default function ChatPage() {
             <span className="text-xl font-bold">AI Chat Platform</span>
           </Link>
 
-          <div className="ml-auto flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <User className="h-4 w-4" />
-              <span>{user?.email}</span>
-              <span className="px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                {user?.subscriptionTier}
-              </span>
-            </div>
+          <div className="ml-auto flex items-center gap-3">
             <ThemeToggle />
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
-              <LogOut className="h-5 w-5" />
-            </Button>
+            <UserMenu onLogout={handleLogout} />
           </div>
         </div>
       </nav>
