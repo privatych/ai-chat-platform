@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import { corsPlugin } from './plugins/cors';
 import { jwtPlugin } from './plugins/jwt';
+import { authRoutes } from './routes/auth';
 
 export async function buildApp() {
   const app = Fastify({
@@ -12,6 +13,9 @@ export async function buildApp() {
   // Register plugins
   await app.register(corsPlugin);
   await app.register(jwtPlugin);
+
+  // Register routes
+  await app.register(authRoutes, { prefix: '/api/auth' });
 
   // Health check
   app.get('/health', async () => {
