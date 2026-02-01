@@ -100,6 +100,7 @@ export function MessageInput({
           supportsVision={supportsVision}
           supportsFiles={supportsFiles}
           disabled={isLoading}
+          attachments={attachments}
         />
         <div className="flex gap-2">
           <Textarea
