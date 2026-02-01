@@ -5,6 +5,7 @@ export * from './schema/users';
 export * from './schema/chats';
 export * from './schema/messages';
 export * from './schema/subscriptions';
+export * from './schema/projects';
 
 // Database connection
 const connectionString = process.env.DATABASE_URL!;

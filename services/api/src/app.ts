@@ -3,6 +3,7 @@ import { corsPlugin } from './plugins/cors';
 import { jwtPlugin } from './plugins/jwt';
 import { authRoutes } from './routes/auth';
 import { chatRoutes } from './routes/chat';
+import { projectRoutes } from './routes/projects';
 
 export async function buildApp() {
   const app = Fastify({
@@ -18,6 +19,7 @@ export async function buildApp() {
   // Register routes
   await app.register(authRoutes, { prefix: '/api/auth' });
   await app.register(chatRoutes, { prefix: '/api/chat' });
+  await app.register(projectRoutes, { prefix: '/api' });
 
   // Health check
   app.get('/health', async () => {
