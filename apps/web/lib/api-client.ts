@@ -80,6 +80,10 @@ class ApiClient {
     return this.request<any[]>('/api/chat');
   }
 
+  async getMessages(chatId: string) {
+    return this.request<any[]>(`/api/chat/${chatId}/messages`);
+  }
+
   async deleteChat(chatId: string) {
     return this.request<{ message: string }>(`/api/chat/${chatId}`, {
       method: 'DELETE',
@@ -97,18 +101,29 @@ class ApiClient {
   async streamMessage(
     chatId: string,
     content: string,
+    model: string,
+    attachments: any[] | undefined,
     onChunk: (chunk: string) => void,
     onDone: (tokensUsed: number) => void
   ) {
     const token = localStorage.getItem('auth_token');
+    console.log('[API Client] Sending SSE request to:', `${API_URL}/api/chat/${chatId}/message`);
+
     const response = await fetch(`${API_URL}/api/chat/${chatId}/message`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, model, attachments }),
     });
+
+    console.log('[API Client] Response status:', response.status);
+    console.log('[API Client] Response headers:', Object.fromEntries(response.headers.entries()));
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
     const reader = response.body?.getReader();
     const decoder = new TextDecoder();
@@ -121,7 +136,10 @@ class ApiClient {
 
     while (true) {
       const { done, value } = await reader.read();
-      if (done) break;
+      if (done) {
+        console.log('[API Client] Stream ended');
+        break;
+      }
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
@@ -129,15 +147,22 @@ class ApiClient {
 
       for (const line of lines) {
         if (line.startsWith('data: ')) {
-          const data = JSON.parse(line.slice(6));
+          const dataStr = line.slice(6);
+          console.log('[API Client] Received data:', dataStr);
 
-          if (data.delta) {
-            onChunk(data.delta);
-          }
+          try {
+            const data = JSON.parse(dataStr);
 
-          if (data.done) {
-            onDone(data.tokensUsed || 0);
-            return;
+            if (data.delta) {
+              onChunk(data.delta);
+            }
+
+            if (data.done) {
+              onDone(data.tokensUsed || 0);
+              return;
+            }
+          } catch (e) {
+            console.error('[API Client] Failed to parse JSON:', dataStr, e);
           }
         }
       }
