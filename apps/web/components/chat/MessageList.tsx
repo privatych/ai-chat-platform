@@ -2,16 +2,39 @@
 
 import { useEffect, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { FileText } from 'lucide-react';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  attachments?: any[];
 }
 
 interface MessageListProps {
   messages: Message[];
   isStreaming: boolean;
+}
+
+function AttachmentDisplay({ attachment }: { attachment: any }) {
+  if (attachment.type === 'image') {
+    return (
+      <div className="relative w-48 h-48 rounded overflow-hidden bg-muted my-2">
+        <img
+          src={`data:${attachment.mimeType};base64,${attachment.data}`}
+          alt={attachment.name}
+          className="object-cover w-full h-full"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 bg-secondary rounded-lg p-2 my-2 max-w-xs">
+      <FileText className="w-5 h-5 text-muted-foreground" />
+      <span className="text-sm">{attachment.name}</span>
+    </div>
+  );
 }
 
 export function MessageList({ messages, isStreaming }: MessageListProps) {
@@ -39,6 +62,13 @@ export function MessageList({ messages, isStreaming }: MessageListProps) {
               }`}
             >
               <p className="whitespace-pre-wrap">{message.content}</p>
+              {message.attachments && message.attachments.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {message.attachments.map((att: any, idx: number) => (
+                    <AttachmentDisplay key={idx} attachment={att} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ))}
