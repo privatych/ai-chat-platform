@@ -2,7 +2,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { db, chats, messages } from '@ai-chat/database';
 import { eq } from 'drizzle-orm';
-import { streamChatCompletion } from '../../services/openrouter';
+import { streamChatCompletion, formatMessageWithAttachments } from '../../services/openrouter';
 
 const attachmentSchema = z.object({
   type: z.enum(['image', 'file']),
@@ -25,6 +25,7 @@ export async function sendMessageHandler(
   const userId = (request.user as any).userId;
   const { chatId } = request.params;
   const body = sendMessageSchema.parse(request.body);
+  const { content, model, attachments } = body;
 
   // Verify chat ownership
   const [chat] = await db
@@ -56,6 +57,7 @@ export async function sendMessageHandler(
     chatId,
     role: 'user',
     content: body.content,
+    attachments: attachments || null,
   });
 
   // Get chat history
@@ -66,10 +68,16 @@ export async function sendMessageHandler(
     .orderBy(messages.createdAt)
     .limit(20);
 
-  const chatMessages = history.map(m => ({
-    role: m.role as 'user' | 'assistant' | 'system',
-    content: m.content,
-  }));
+  const chatMessages = history.map((m, index) => {
+    // Check if this is the latest user message with attachments
+    const isLatestUserMessage = index === history.length - 1 && m.role === 'user';
+    const messageAttachments = isLatestUserMessage ? attachments : (m.attachments as any);
+
+    return {
+      role: m.role as 'user' | 'assistant' | 'system',
+      content: formatMessageWithAttachments(m.content, messageAttachments),
+    };
+  });
 
   // Setup SSE - hijack reply to prevent Fastify from auto-sending
   reply.hijack();
