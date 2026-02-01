@@ -2,9 +2,17 @@ import { z } from 'zod';
 
 const openRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
 
+interface MessageContent {
+  type: 'text' | 'image_url';
+  text?: string;
+  image_url?: {
+    url: string;
+  };
+}
+
 interface Message {
   role: 'user' | 'assistant' | 'system';
-  content: string;
+  content: string | MessageContent[];
 }
 
 export async function streamChatCompletion(
@@ -13,6 +21,8 @@ export async function streamChatCompletion(
   onChunk: (chunk: string) => void,
   onDone: (tokensUsed: number) => void
 ) {
+  console.log('[OpenRouter] Sending request:', { model, messageCount: messages.length });
+
   const response = await fetch(openRouterUrl, {
     method: 'POST',
     headers: {
@@ -28,8 +38,12 @@ export async function streamChatCompletion(
   });
 
   if (!response.ok) {
-    throw new Error(`OpenRouter API error: ${response.statusText}`);
+    const errorText = await response.text();
+    console.error('[OpenRouter] API error:', response.status, errorText);
+    throw new Error(`OpenRouter API error: ${response.statusText} - ${errorText}`);
   }
+
+  console.log('[OpenRouter] Response received, starting stream');
 
   const reader = response.body?.getReader();
   const decoder = new TextDecoder();
@@ -70,7 +84,16 @@ export async function streamChatCompletion(
           if (parsed.usage?.total_tokens) {
             totalTokens = parsed.usage.total_tokens;
           }
+
+          // Check for errors in response
+          if (parsed.error) {
+            console.error('[OpenRouter] Stream error:', parsed.error);
+            throw new Error(parsed.error.message || 'OpenRouter API error');
+          }
         } catch (e) {
+          if (e instanceof Error && e.message.includes('OpenRouter')) {
+            throw e;
+          }
           // Skip invalid JSON
         }
       }

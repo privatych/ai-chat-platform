@@ -4,8 +4,18 @@ import { db, chats, messages } from '@ai-chat/database';
 import { eq } from 'drizzle-orm';
 import { streamChatCompletion } from '../../services/openrouter';
 
+const attachmentSchema = z.object({
+  type: z.enum(['image', 'file']),
+  name: z.string(),
+  mimeType: z.string(),
+  data: z.string(),
+  size: z.number(),
+});
+
 const sendMessageSchema = z.object({
   content: z.string().min(1),
+  model: z.string().optional(),
+  attachments: z.array(attachmentSchema).optional(),
 });
 
 export async function sendMessageHandler(
@@ -30,6 +40,17 @@ export async function sendMessageHandler(
     });
   }
 
+  // Update chat model if provided
+  let currentModel = chat.model;
+  if (body.model && body.model !== chat.model) {
+    await db
+      .update(chats)
+      .set({ model: body.model, updatedAt: new Date() })
+      .where(eq(chats.id, chatId));
+    currentModel = body.model;
+    console.log(`[Message Handler] Updated chat model from ${chat.model} to ${body.model}`);
+  }
+
   // Save user message
   await db.insert(messages).values({
     chatId,
@@ -50,31 +71,48 @@ export async function sendMessageHandler(
     content: m.content,
   }));
 
-  // Setup SSE
-  reply.raw.setHeader('Content-Type', 'text/event-stream');
-  reply.raw.setHeader('Cache-Control', 'no-cache');
-  reply.raw.setHeader('Connection', 'keep-alive');
+  // Setup SSE - hijack reply to prevent Fastify from auto-sending
+  reply.hijack();
+  reply.raw.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+  });
 
   let assistantMessage = '';
+  let chunkCount = 0;
 
-  await streamChatCompletion(
-    chat.model,
-    chatMessages,
-    (chunk) => {
-      assistantMessage += chunk;
-      reply.raw.write(`data: ${JSON.stringify({ delta: chunk })}\n\n`);
-    },
-    async (tokensUsed) => {
-      // Save assistant message
-      await db.insert(messages).values({
-        chatId,
-        role: 'assistant',
-        content: assistantMessage,
-        tokensUsed,
-      });
+  try {
+    console.log(`[Message Handler] Using model: ${currentModel}`);
+    await streamChatCompletion(
+      currentModel,
+      chatMessages,
+      (chunk) => {
+        chunkCount++;
+        assistantMessage += chunk;
+        const data = JSON.stringify({ delta: chunk });
+        console.log(`[Message Handler] Sending chunk ${chunkCount}:`, data);
+        reply.raw.write(`data: ${data}\n\n`);
+      },
+      async (tokensUsed) => {
+        console.log(`[Message Handler] Stream complete, total chunks: ${chunkCount}, tokens: ${tokensUsed}`);
 
-      reply.raw.write(`data: ${JSON.stringify({ done: true, tokensUsed })}\n\n`);
-      reply.raw.end();
-    }
-  );
+        // Save assistant message
+        await db.insert(messages).values({
+          chatId,
+          role: 'assistant',
+          content: assistantMessage,
+          tokensUsed,
+        });
+
+        reply.raw.write(`data: ${JSON.stringify({ done: true, tokensUsed })}\n\n`);
+        reply.raw.end();
+      }
+    );
+  } catch (error) {
+    console.error('[Message Handler] Error during streaming:', error);
+    reply.raw.write(`data: ${JSON.stringify({ error: 'Streaming failed' })}\n\n`);
+    reply.raw.end();
+  }
 }
