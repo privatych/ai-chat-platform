@@ -15,6 +15,42 @@ interface Message {
   content: string | MessageContent[];
 }
 
+interface Attachment {
+  type: 'image' | 'file';
+  name: string;
+  mimeType: string;
+  data: string;
+  size: number;
+}
+
+export function formatMessageWithAttachments(
+  content: string,
+  attachments?: Attachment[]
+): string | MessageContent[] {
+  if (!attachments || attachments.length === 0) {
+    return content;
+  }
+
+  const contentParts: MessageContent[] = [
+    { type: 'text', text: content }
+  ];
+
+  for (const attachment of attachments) {
+    if (attachment.type === 'image') {
+      contentParts.push({
+        type: 'image_url',
+        image_url: {
+          url: `data:${attachment.mimeType};base64,${attachment.data}`
+        }
+      });
+    }
+    // For files, we can add text content or similar handling
+    // For now, images are primary focus
+  }
+
+  return contentParts;
+}
+
 export async function streamChatCompletion(
   model: string,
   messages: Message[],
