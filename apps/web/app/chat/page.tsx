@@ -43,7 +43,11 @@ export default function ChatPage() {
   };
 
   const createNewChat = async () => {
-    const response = await apiClient.createChat('Новый чат', selectedModel);
+    const response = await apiClient.createChat(
+      'Новый чат',
+      selectedModel,
+      selectedProjectId || undefined
+    );
     if (response.success && response.data) {
       setChats([response.data, ...chats]);
       setCurrentChatId(response.data.id);

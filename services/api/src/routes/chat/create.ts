@@ -5,6 +5,7 @@ import { db, chats } from '@ai-chat/database';
 const createChatSchema = z.object({
   title: z.string().min(1).max(255),
   model: z.string(),
+  projectId: z.string().uuid().optional(),
 });
 
 export async function createChatHandler(
@@ -18,6 +19,7 @@ export async function createChatHandler(
     .insert(chats)
     .values({
       userId,
+      projectId: body.projectId || null,
       title: body.title,
       model: body.model,
     })

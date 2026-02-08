@@ -69,10 +69,10 @@ class ApiClient {
   }
 
   // Chat endpoints
-  async createChat(title: string, model: string) {
+  async createChat(title: string, model: string, projectId?: string) {
     return this.request<any>('/api/chat', {
       method: 'POST',
-      body: JSON.stringify({ title, model }),
+      body: JSON.stringify({ title, model, projectId }),
     });
   }
 
