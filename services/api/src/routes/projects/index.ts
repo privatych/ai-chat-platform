@@ -4,6 +4,7 @@ import { listProjectsHandler } from './list';
 import { getProjectHandler } from './get';
 import { updateProjectHandler } from './update';
 import { deleteProjectHandler } from './delete';
+import { contextRoutes } from './context';
 import { authenticate } from '../../plugins/jwt';
 
 export async function projectRoutes(app: FastifyInstance) {
@@ -15,4 +16,7 @@ export async function projectRoutes(app: FastifyInstance) {
   app.get('/projects/:projectId', getProjectHandler);
   app.patch('/projects/:projectId', updateProjectHandler);
   app.delete('/projects/:projectId', deleteProjectHandler);
+
+  // Register context sub-routes
+  await contextRoutes(app);
 }
