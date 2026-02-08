@@ -15,19 +15,25 @@ import Link from 'next/link';
 
 export default function ChatPage() {
   const router = useRouter();
-  const { isAuthenticated, user, clearAuth } = useAuthStore();
+  const { isAuthenticated, user, clearAuth, hasHydrated } = useAuthStore();
   const [chats, setChats] = useState<any[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState('openai/gpt-3.5-turbo');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   useEffect(() => {
+    // Wait for hydration before checking auth
+    if (!hasHydrated) {
+      return;
+    }
+
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
 
     loadChats();
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, hasHydrated, router]);
 
   const loadChats = async () => {
     const response = await apiClient.getChats();
@@ -75,6 +81,18 @@ export default function ChatPage() {
     ? [...AI_MODELS.free, ...AI_MODELS.premium]
     : [...AI_MODELS.free];
 
+  // Show loading while hydrating from localStorage
+  if (!hasHydrated) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+          <p className="mt-4 text-muted-foreground">Загрузка...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen">
       {/* Top Navigation */}
@@ -101,6 +119,7 @@ export default function ChatPage() {
           onNewChat={createNewChat}
           onRenameChat={handleRenameChat}
           onDeleteChat={handleDeleteChat}
+          onProjectChange={setSelectedProjectId}
         />
         <ChatInterface
           chatId={currentChatId}
