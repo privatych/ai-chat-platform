@@ -7,8 +7,11 @@ import {
   PlusCircle,
   MoreVertical,
   Pencil,
-  Trash2
+  Trash2,
+  Settings
 } from 'lucide-react';
+import { ProjectSelector } from '@/components/projects/ProjectSelector';
+import { ContextEditor } from '@/components/projects/ContextEditor';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +46,7 @@ interface ChatSidebarProps {
   onNewChat: () => void;
   onRenameChat: (chatId: string, newTitle: string) => Promise<void>;
   onDeleteChat: (chatId: string) => Promise<void>;
+  onProjectChange?: (projectId: string | null) => void;
 }
 
 export function ChatSidebar({
@@ -52,11 +56,14 @@ export function ChatSidebar({
   onNewChat,
   onRenameChat,
   onDeleteChat,
+  onProjectChange,
 }: ChatSidebarProps) {
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedChat, setSelectedChat] = useState<any>(null);
   const [newTitle, setNewTitle] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [isContextDialogOpen, setIsContextDialogOpen] = useState(false);
 
   const handleRenameClick = (chat: any, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -88,9 +95,34 @@ export function ChatSidebar({
     }
   };
 
+  const handleProjectChange = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    if (onProjectChange) {
+      onProjectChange(projectId);
+    }
+  };
+
   return (
     <>
       <div className="w-64 border-r bg-muted/10 flex flex-col">
+        {/* Project Selector */}
+        <div className="p-4 border-b space-y-2">
+          <ProjectSelector
+            selectedProjectId={selectedProjectId}
+            onProjectChange={handleProjectChange}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={() => setIsContextDialogOpen(true)}
+            disabled={!selectedProjectId}
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            Редактировать контекст
+          </Button>
+        </div>
+
         <div className="p-4 border-b">
           <Button onClick={onNewChat} className="w-full">
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -200,6 +232,19 @@ export function ChatSidebar({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Context Editor Dialog */}
+      <Dialog open={isContextDialogOpen} onOpenChange={setIsContextDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Контекст проекта</DialogTitle>
+            <DialogDescription>
+              Управление информацией для AI в этом проекте
+            </DialogDescription>
+          </DialogHeader>
+          <ContextEditor projectId={selectedProjectId} />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
