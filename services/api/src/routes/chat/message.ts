@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { db, chats, messages } from '@ai-chat/database';
+import { db, chats, messages, projects, contextSections } from '@ai-chat/database';
 import { eq } from 'drizzle-orm';
 import { streamChatCompletion, formatMessageWithAttachments } from '../../services/openrouter';
 
@@ -17,6 +17,52 @@ const sendMessageSchema = z.object({
   model: z.string().optional(),
   attachments: z.array(attachmentSchema).optional(),
 });
+
+async function buildSystemPromptWithContext(
+  chatId: string,
+  userId: string,
+  basePrompt?: string
+): Promise<string> {
+  // Get chat with project reference
+  const [chat] = await db
+    .select()
+    .from(chats)
+    .where(eq(chats.id, chatId))
+    .limit(1);
+
+  if (!chat || !chat.useProjectContext || !chat.projectId) {
+    return basePrompt || '';
+  }
+
+  // Get all context sections for this project
+  const sections = await db
+    .select()
+    .from(contextSections)
+    .where(eq(contextSections.projectId, chat.projectId))
+    .orderBy(contextSections.createdAt);
+
+  if (sections.length === 0) {
+    return basePrompt || '';
+  }
+
+  // Build context prompt
+  const contextParts = sections.map(section => {
+    let text = `## ${section.title}\n\n`;
+    if (section.content) {
+      text += section.content + '\n\n';
+    }
+    if (section.extractedText) {
+      text += section.extractedText + '\n\n';
+    }
+    return text;
+  });
+
+  const contextPrompt = `# Project Context\n\n${contextParts.join('\n---\n\n')}`;
+
+  return basePrompt
+    ? `${contextPrompt}\n\n---\n\n${basePrompt}`
+    : contextPrompt;
+}
 
 export async function sendMessageHandler(
   request: FastifyRequest<{ Params: { chatId: string } }>,
@@ -60,6 +106,13 @@ export async function sendMessageHandler(
     attachments: attachments || null,
   });
 
+  // Build system prompt with context if enabled
+  const systemPrompt = await buildSystemPromptWithContext(
+    chatId,
+    userId,
+    chat.systemPrompt || undefined
+  );
+
   // Get chat history
   const history = await db
     .select()
@@ -78,6 +131,14 @@ export async function sendMessageHandler(
       content: formatMessageWithAttachments(m.content, messageAttachments),
     };
   });
+
+  // Prepend system prompt if exists
+  if (systemPrompt) {
+    chatMessages.unshift({
+      role: 'system',
+      content: systemPrompt,
+    });
+  }
 
   // Setup SSE - hijack reply to prevent Fastify from auto-sending
   reply.hijack();

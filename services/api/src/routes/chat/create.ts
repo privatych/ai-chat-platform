@@ -22,6 +22,7 @@ export async function createChatHandler(
       projectId: body.projectId || null,
       title: body.title,
       model: body.model,
+      useProjectContext: body.projectId ? true : false,
     })
     .returning();
 
