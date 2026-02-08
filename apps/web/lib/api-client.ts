@@ -97,6 +97,66 @@ class ApiClient {
     });
   }
 
+  // Project endpoints
+  async createProject(name: string, description?: string) {
+    return this.request<any>('/api/projects', {
+      method: 'POST',
+      body: JSON.stringify({ name, description }),
+    });
+  }
+
+  async listProjects() {
+    return this.request<any[]>('/api/projects');
+  }
+
+  async getProject(projectId: string) {
+    return this.request<any>(`/api/projects/${projectId}`);
+  }
+
+  async updateProject(projectId: string, name: string, description?: string) {
+    return this.request<any>(`/api/projects/${projectId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name, description }),
+    });
+  }
+
+  async deleteProject(projectId: string) {
+    return this.request<{ message: string }>(`/api/projects/${projectId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Context section endpoints
+  async createContextSection(
+    projectId: string,
+    sectionType: 'about_project' | 'about_user' | 'technical' | 'documents',
+    title: string,
+    content?: string,
+    files?: any[]
+  ) {
+    return this.request<any>(`/api/projects/${projectId}/context/sections`, {
+      method: 'POST',
+      body: JSON.stringify({ sectionType, title, content, files }),
+    });
+  }
+
+  async listContextSections(projectId: string) {
+    return this.request<any[]>(`/api/projects/${projectId}/context/sections`);
+  }
+
+  async updateContextSection(
+    projectId: string,
+    sectionId: string,
+    title?: string,
+    content?: string,
+    files?: any[]
+  ) {
+    return this.request<any>(`/api/projects/${projectId}/context/sections/${sectionId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ title, content, files }),
+    });
+  }
+
   // SSE streaming for messages
   async streamMessage(
     chatId: string,
