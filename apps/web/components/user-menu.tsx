@@ -24,6 +24,7 @@ import {
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { apiClient } from '@/lib/api-client';
 import { RATE_LIMITS } from '@ai-chat/shared';
+import { toast } from 'sonner';
 
 interface UsageStats {
   messagesUsedToday: number;
@@ -74,6 +75,14 @@ export function UserMenu({ onLogout }: UserMenuProps) {
   };
 
   const isPremium = tier === 'premium';
+
+  const handleSettings = () => {
+    toast.info('Настройки скоро будут доступны');
+  };
+
+  const handleUpgradeToPremium = () => {
+    toast.info('Страница оплаты скоро будет доступна');
+  };
 
   return (
     <DropdownMenu>
@@ -159,7 +168,7 @@ export function UserMenu({ onLogout }: UserMenuProps) {
           </div>
 
           {!isPremium && (
-            <Button className="w-full" size="sm" variant="default">
+            <Button className="w-full" size="sm" variant="default" onClick={handleUpgradeToPremium}>
               <Crown className="mr-2 h-4 w-4" />
               Перейти на Premium
             </Button>
@@ -168,7 +177,7 @@ export function UserMenu({ onLogout }: UserMenuProps) {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={handleSettings}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Настройки</span>
         </DropdownMenuItem>

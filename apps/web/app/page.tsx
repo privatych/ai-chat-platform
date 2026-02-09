@@ -1,10 +1,15 @@
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
 import { Brain, Zap, Shield, DollarSign, Sparkles, MessageSquare, ArrowRight, Check } from "lucide-react";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 export default function Home() {
+  const { isAuthenticated, hasHydrated } = useAuthStore();
+
   return (
     <div className="min-h-screen">
       {/* Navigation */}
@@ -17,12 +22,24 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-4">
               <ThemeToggle />
-              <Link href="/login">
-                <Button variant="ghost">Войти</Button>
-              </Link>
-              <Link href="/register">
-                <Button>Начать бесплатно</Button>
-              </Link>
+              {hasHydrated ? (
+                isAuthenticated ? (
+                  <Link href="/chat">
+                    <Button>Перейти в чат</Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/login">
+                      <Button variant="ghost">Войти</Button>
+                    </Link>
+                    <Link href="/register">
+                      <Button>Начать бесплатно</Button>
+                    </Link>
+                  </>
+                )
+              ) : (
+                <div className="h-10 w-32 bg-secondary animate-pulse rounded-md" />
+              )}
             </div>
           </div>
         </div>
@@ -48,22 +65,40 @@ export default function Home() {
             </h1>
 
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              Общайтесь с <span className="text-primary font-semibold">20+ лучшими AI моделями</span> в одном месте.
-              GPT-4, Claude, Gemini, DeepSeek и другие.
+              Общайтесь с <span className="text-primary font-semibold">7 лучшими AI моделями</span> в одном месте.
+              GPT-4, Claude 3.5, Gemini 2.5 Pro, Llama 3.3 и другие.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Link href="/register">
-                <Button size="lg" className="text-lg px-8 group">
-                  Начать бесплатно
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button size="lg" variant="outline" className="text-lg px-8">
-                  Войти
-                </Button>
-              </Link>
+              {hasHydrated ? (
+                isAuthenticated ? (
+                  <Link href="/chat">
+                    <Button size="lg" className="text-lg px-8 group">
+                      Перейти в чат
+                      <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/register">
+                      <Button size="lg" className="text-lg px-8 group">
+                        Начать бесплатно
+                        <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </Link>
+                    <Link href="/login">
+                      <Button size="lg" variant="outline" className="text-lg px-8">
+                        Войти
+                      </Button>
+                    </Link>
+                  </>
+                )
+              ) : (
+                <div className="flex gap-4">
+                  <div className="h-12 w-48 bg-secondary animate-pulse rounded-md" />
+                  <div className="h-12 w-32 bg-secondary animate-pulse rounded-md" />
+                </div>
+              )}
             </div>
 
             <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
@@ -90,8 +125,8 @@ export default function Home() {
             {[
               {
                 icon: Brain,
-                title: "20+ AI Моделей",
-                desc: "GPT-4 Turbo, Claude 3.5, Gemini Pro, DeepSeek, Llama 3, Mistral и другие"
+                title: "7 AI Моделей",
+                desc: "GPT-4 Turbo, Claude 3.5 Sonnet, Gemini 2.5 Pro, Llama 3.3 70B и другие"
               },
               {
                 icon: Zap,
@@ -145,22 +180,32 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { name: 'GPT-4 Turbo', company: 'OpenAI', desc: 'Самая мощная модель', color: 'from-green-500 to-emerald-600' },
-              { name: 'Claude 3.5 Sonnet', company: 'Anthropic', desc: 'Лучшая для анализа', color: 'from-orange-500 to-red-600' },
-              { name: 'Gemini Pro', company: 'Google', desc: 'Быстрая и точная', color: 'from-blue-500 to-cyan-600' },
-              { name: 'DeepSeek V3', company: 'DeepSeek', desc: 'Новейшая технология', color: 'from-purple-500 to-pink-600' },
-              { name: 'Llama 3 70B', company: 'Meta', desc: 'Open source модель', color: 'from-indigo-500 to-purple-600' },
-              { name: 'Mistral Large', company: 'Mistral AI', desc: 'Европейская модель', color: 'from-yellow-500 to-orange-600' },
-              { name: 'GPT-3.5 Turbo', company: 'OpenAI', desc: 'Быстрая и доступная', color: 'from-teal-500 to-green-600' },
-              { name: 'Claude 3 Haiku', company: 'Anthropic', desc: 'Молниеносная скорость', color: 'from-rose-500 to-red-600' },
+              { name: 'GPT-4 Turbo', company: 'OpenAI', desc: 'Самая мощная модель', color: 'from-green-500 to-emerald-600', tier: 'Premium' },
+              { name: 'Claude 3.5 Sonnet', company: 'Anthropic', desc: 'Лучшая для анализа', color: 'from-orange-500 to-red-600', tier: 'Premium' },
+              { name: 'Gemini 2.5 Pro', company: 'Google', desc: 'Новейшая от Google', color: 'from-blue-500 to-cyan-600', tier: 'Premium' },
+              { name: 'Llama 3.3 70B', company: 'Meta', desc: 'Мощная open source', color: 'from-purple-500 to-pink-600', tier: 'Premium' },
+              { name: 'GPT-3.5 Turbo', company: 'OpenAI', desc: 'Быстрая и доступная', color: 'from-teal-500 to-green-600', tier: 'Free' },
+              { name: 'Gemini 2.0 Flash', company: 'Google', desc: 'Молниеносная скорость', color: 'from-indigo-500 to-purple-600', tier: 'Free' },
+              { name: 'Llama 3.1 8B', company: 'Meta', desc: 'Компактная модель', color: 'from-yellow-500 to-orange-600', tier: 'Free' },
             ].map((model, idx) => (
-              <Card key={idx} className="group hover:shadow-lg transition-all">
+              <Card key={idx} className="group hover:shadow-lg transition-all relative">
                 <CardHeader>
                   <div className={`w-full h-1 rounded-full bg-gradient-to-r ${model.color} mb-4`} />
-                  <CardTitle className="text-lg">{model.name}</CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground">
-                    {model.company}
-                  </CardDescription>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{model.name}</CardTitle>
+                      <CardDescription className="text-xs text-muted-foreground">
+                        {model.company}
+                      </CardDescription>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      model.tier === 'Premium'
+                        ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-700 dark:text-yellow-400 border border-yellow-500/30'
+                        : 'bg-secondary text-muted-foreground'
+                    }`}>
+                      {model.tier}
+                    </span>
+                  </div>
                   <p className="text-sm mt-2 text-muted-foreground">{model.desc}</p>
                 </CardHeader>
               </Card>
@@ -203,11 +248,19 @@ export default function Home() {
                     </p>
                   ))}
                 </div>
-                <Link href="/register" className="block">
-                  <Button variant="outline" className="w-full" size="lg">
-                    Начать бесплатно
-                  </Button>
-                </Link>
+                {hasHydrated && isAuthenticated ? (
+                  <Link href="/chat" className="block">
+                    <Button variant="outline" className="w-full" size="lg">
+                      Перейти в чат
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/register" className="block">
+                    <Button variant="outline" className="w-full" size="lg">
+                      Начать бесплатно
+                    </Button>
+                  </Link>
+                )}
               </CardContent>
             </Card>
 
@@ -238,11 +291,19 @@ export default function Home() {
                     </p>
                   ))}
                 </div>
-                <Link href="/register" className="block">
-                  <Button className="w-full" size="lg">
-                    Оформить Premium
-                  </Button>
-                </Link>
+                {hasHydrated && isAuthenticated ? (
+                  <Link href="/chat" className="block">
+                    <Button className="w-full" size="lg">
+                      Перейти в чат
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/register" className="block">
+                    <Button className="w-full" size="lg">
+                      Оформить Premium
+                    </Button>
+                  </Link>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -259,12 +320,21 @@ export default function Home() {
           <p className="text-lg md:text-xl mb-8 opacity-90">
             Присоединяйтесь к тысячам пользователей, которые уже используют нашу платформу
           </p>
-          <Link href="/register">
-            <Button size="lg" variant="secondary" className="text-lg px-8 group">
-              Создать бесплатный аккаунт
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
+          {hasHydrated && isAuthenticated ? (
+            <Link href="/chat">
+              <Button size="lg" variant="secondary" className="text-lg px-8 group">
+                Перейти в чат
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/register">
+              <Button size="lg" variant="secondary" className="text-lg px-8 group">
+                Создать бесплатный аккаунт
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          )}
         </div>
       </section>
 
