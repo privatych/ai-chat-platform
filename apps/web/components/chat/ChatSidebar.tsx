@@ -11,7 +11,9 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
-  FolderOpen
+  FolderOpen,
+  Filter,
+  X
 } from 'lucide-react';
 import { ProjectSelector } from '@/components/projects/ProjectSelector';
 import { ContextEditor } from '@/components/projects/ContextEditor';
@@ -68,6 +70,7 @@ export function ChatSidebar({
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isContextDialogOpen, setIsContextDialogOpen] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [filterByProject, setFilterByProject] = useState(true);
 
   const handleRenameClick = (chat: any, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -118,8 +121,13 @@ export function ChatSidebar({
     });
   };
 
+  // Filter chats by selected project (if filter is enabled)
+  const filteredChats = (filterByProject && selectedProjectId)
+    ? chats.filter(chat => chat.projectId === selectedProjectId)
+    : chats;
+
   // Group chats by projectId
-  const groupedChats = chats.reduce((groups: Record<string, any[]>, chat) => {
+  const groupedChats = filteredChats.reduce((groups: Record<string, any[]>, chat) => {
     const key = chat.projectId || 'no-project';
     if (!groups[key]) {
       groups[key] = [];
@@ -149,11 +157,32 @@ export function ChatSidebar({
           </Button>
         </div>
 
-        <div className="p-4 border-b">
+        <div className="p-4 border-b space-y-2">
           <Button onClick={onNewChat} className="w-full">
             <PlusCircle className="mr-2 h-4 w-4" />
             Новый чат
           </Button>
+
+          {selectedProjectId && (
+            <Button
+              variant={filterByProject ? "secondary" : "outline"}
+              size="sm"
+              className="w-full"
+              onClick={() => setFilterByProject(!filterByProject)}
+            >
+              {filterByProject ? (
+                <>
+                  <Filter className="mr-2 h-3 w-3" />
+                  Фильтр: Текущий проект
+                </>
+              ) : (
+                <>
+                  <X className="mr-2 h-3 w-3" />
+                  Показать все чаты
+                </>
+              )}
+            </Button>
+          )}
         </div>
         <ScrollArea className="flex-1">
           <div className="p-2 space-y-3">

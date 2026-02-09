@@ -42,7 +42,7 @@ import {
 
 interface ProjectSelectorProps {
   selectedProjectId: string | null;
-  onProjectChange: (projectId: string) => void;
+  onProjectChange: (projectId: string | null) => void;
 }
 
 export function ProjectSelector({
@@ -154,7 +154,7 @@ export function ProjectSelector({
 
       // Select first project or null
       if (selectedProjectId === selectedProject.id) {
-        onProjectChange(newProjects[0]?.id || '');
+        onProjectChange(newProjects[0]?.id || null);
       }
 
       setIsDeleteDialogOpen(false);
