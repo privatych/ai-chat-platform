@@ -61,6 +61,7 @@ export async function registerHandler(
           email: newUser.email,
           fullName: newUser.fullName,
           subscriptionTier: newUser.subscriptionTier,
+          subscriptionExpiresAt: newUser.subscriptionExpiresAt,
         },
       },
     });

@@ -1,20 +1,23 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface User {
   id: string;
   email: string;
   fullName?: string;
   subscriptionTier: 'free' | 'premium';
+  subscriptionExpiresAt?: string | null;
 }
 
 interface AuthState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  hasHydrated: boolean;
 
   setAuth: (token: string, user: User) => void;
   clearAuth: () => void;
+  setHasHydrated: (state: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -23,6 +26,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       isAuthenticated: false,
+      hasHydrated: false,
 
       setAuth: (token: string, user: User) => {
         localStorage.setItem('auth_token', token);
@@ -33,14 +37,22 @@ export const useAuthStore = create<AuthState>()(
         localStorage.removeItem('auth_token');
         set({ token: null, user: null, isAuthenticated: false });
       },
+
+      setHasHydrated: (state: boolean) => {
+        set({ hasHydrated: state });
+      },
     }),
     {
       name: 'auth-storage',
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,
         token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

@@ -56,6 +56,7 @@ export async function loginHandler(
           email: user.email,
           fullName: user.fullName,
           subscriptionTier: user.subscriptionTier,
+          subscriptionExpiresAt: user.subscriptionExpiresAt,
         },
       },
     });
