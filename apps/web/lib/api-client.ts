@@ -27,10 +27,17 @@ class ApiClient {
     endpoint: string,
     options?: RequestInit
   ): Promise<ApiResponse<T>> {
+    const baseHeaders = this.getHeaders();
+
+    // Remove Content-Type if no body (fixes DELETE requests)
+    if (!options?.body) {
+      delete (baseHeaders as any)['Content-Type'];
+    }
+
     const response = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers: {
-        ...this.getHeaders(),
+        ...baseHeaders,
         ...options?.headers,
       },
     });
@@ -85,9 +92,12 @@ class ApiClient {
   }
 
   async deleteChat(chatId: string) {
-    return this.request<{ message: string }>(`/api/chat/${chatId}`, {
+    console.log('[API Client] DELETE /api/chat/' + chatId);
+    const result = await this.request<{ message: string }>(`/api/chat/${chatId}`, {
       method: 'DELETE',
     });
+    console.log('[API Client] DELETE response:', result);
+    return result;
   }
 
   async renameChat(chatId: string, title: string) {

@@ -66,13 +66,18 @@ export default function ChatPage() {
   };
 
   const handleDeleteChat = async (chatId: string) => {
+    console.log('[Delete Chat] Starting delete for chatId:', chatId);
     const response = await apiClient.deleteChat(chatId);
+    console.log('[Delete Chat] Response:', response);
     if (response.success) {
       setChats(chats.filter(chat => chat.id !== chatId));
       if (currentChatId === chatId) {
         setCurrentChatId(null);
       }
       toast.success('Чат удалён');
+    } else {
+      console.error('[Delete Chat] Failed:', response.error);
+      toast.error('Не удалось удалить чат');
     }
   };
 
