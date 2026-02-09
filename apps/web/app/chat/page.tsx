@@ -127,6 +127,7 @@ export default function ChatPage() {
         <ChatSidebar
           chats={chats}
           currentChatId={currentChatId}
+          selectedProjectId={selectedProjectId}
           onSelectChat={setCurrentChatId}
           onNewChat={createNewChat}
           onRenameChat={handleRenameChat}

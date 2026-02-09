@@ -47,16 +47,18 @@ import { Label } from '@/components/ui/label';
 interface ChatSidebarProps {
   chats: any[];
   currentChatId: string | null;
+  selectedProjectId: string | null;
   onSelectChat: (chatId: string) => void;
   onNewChat: () => void;
   onRenameChat: (chatId: string, newTitle: string) => Promise<void>;
   onDeleteChat: (chatId: string) => Promise<void>;
-  onProjectChange?: (projectId: string | null) => void;
+  onProjectChange: (projectId: string | null) => void;
 }
 
 export function ChatSidebar({
   chats,
   currentChatId,
+  selectedProjectId,
   onSelectChat,
   onNewChat,
   onRenameChat,
@@ -67,7 +69,6 @@ export function ChatSidebar({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedChat, setSelectedChat] = useState<any>(null);
   const [newTitle, setNewTitle] = useState('');
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isContextDialogOpen, setIsContextDialogOpen] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [filterByProject, setFilterByProject] = useState(true);
@@ -102,12 +103,6 @@ export function ChatSidebar({
     }
   };
 
-  const handleProjectChange = (projectId: string) => {
-    setSelectedProjectId(projectId);
-    if (onProjectChange) {
-      onProjectChange(projectId);
-    }
-  };
 
   const toggleGroup = (groupId: string) => {
     setCollapsedGroups(prev => {
@@ -143,7 +138,7 @@ export function ChatSidebar({
         <div className="p-4 border-b space-y-2">
           <ProjectSelector
             selectedProjectId={selectedProjectId}
-            onProjectChange={handleProjectChange}
+            onProjectChange={onProjectChange}
           />
           <Button
             variant="outline"
