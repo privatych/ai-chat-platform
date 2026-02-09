@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { extractTextFromFile } from '../utils/text-extractor';
+import { getEnv } from '../config/env';
 
 const openRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -82,7 +83,7 @@ export async function streamChatCompletion(
   const response = await fetch(openRouterUrl, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      'Authorization': `Bearer ${getEnv('OPENROUTER_API_KEY')}`,
       'Content-Type': 'application/json',
       'HTTP-Referer': process.env.WEB_URL || 'http://localhost:3000',
     },

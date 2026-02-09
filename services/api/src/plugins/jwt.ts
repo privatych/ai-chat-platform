@@ -1,6 +1,7 @@
 import { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
 import fp from 'fastify-plugin';
 import jwt from '@fastify/jwt';
+import { getEnv } from '../config/env';
 
 export const authenticate = async (request: FastifyRequest, reply: FastifyReply) => {
   try {
@@ -12,7 +13,7 @@ export const authenticate = async (request: FastifyRequest, reply: FastifyReply)
 
 const jwtPluginImpl: FastifyPluginAsync = async (fastify) => {
   await fastify.register(jwt, {
-    secret: process.env.JWT_SECRET!,
+    secret: getEnv('JWT_SECRET'),
   });
 
   fastify.decorate('authenticate', authenticate);

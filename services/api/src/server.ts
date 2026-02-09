@@ -1,8 +1,12 @@
 import 'dotenv/config';
 import { buildApp } from './app';
+import { validateEnv } from './config/env';
 
 const start = async () => {
   try {
+    // Validate environment variables before starting
+    validateEnv();
+
     const app = await buildApp();
 
     const port = parseInt(process.env.PORT || '3001', 10);
