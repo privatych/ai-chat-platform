@@ -28,28 +28,47 @@ export async function createChatHandler(
     .returning();
 
   // Fetch the chat with project information (matching list endpoint structure)
-  const [chatWithProject] = await db
+  const [result] = await db
     .select({
-      id: chats.id,
-      userId: chats.userId,
-      title: chats.title,
-      model: chats.model,
-      systemPrompt: chats.systemPrompt,
-      temperature: chats.temperature,
-      projectId: chats.projectId,
-      useProjectContext: chats.useProjectContext,
-      createdAt: chats.createdAt,
-      updatedAt: chats.updatedAt,
-      project: {
-        id: projects.id,
-        name: projects.name,
-        description: projects.description,
-      },
+      // Chat fields
+      chatId: chats.id,
+      chatUserId: chats.userId,
+      chatTitle: chats.title,
+      chatModel: chats.model,
+      chatSystemPrompt: chats.systemPrompt,
+      chatTemperature: chats.temperature,
+      chatProjectId: chats.projectId,
+      chatUseProjectContext: chats.useProjectContext,
+      chatCreatedAt: chats.createdAt,
+      chatUpdatedAt: chats.updatedAt,
+      // Project fields
+      projectId: projects.id,
+      projectName: projects.name,
+      projectDescription: projects.description,
     })
     .from(chats)
     .leftJoin(projects, eq(chats.projectId, projects.id))
     .where(eq(chats.id, insertedChat.id))
     .limit(1);
+
+  // Transform to expected structure
+  const chatWithProject = {
+    id: result.chatId,
+    userId: result.chatUserId,
+    title: result.chatTitle,
+    model: result.chatModel,
+    systemPrompt: result.chatSystemPrompt,
+    temperature: result.chatTemperature,
+    projectId: result.chatProjectId,
+    useProjectContext: result.chatUseProjectContext,
+    createdAt: result.chatCreatedAt,
+    updatedAt: result.chatUpdatedAt,
+    project: result.projectId ? {
+      id: result.projectId,
+      name: result.projectName,
+      description: result.projectDescription,
+    } : null,
+  };
 
   return reply.send({
     success: true,

@@ -8,29 +8,49 @@ export async function listChatsHandler(
 ) {
   const userId = (request.user as any).userId;
 
-  const userChats = await db
+  // Get chats with projects - using flat structure first
+  const results = await db
     .select({
-      id: chats.id,
-      userId: chats.userId,
-      title: chats.title,
-      model: chats.model,
-      systemPrompt: chats.systemPrompt,
-      temperature: chats.temperature,
-      projectId: chats.projectId,
-      useProjectContext: chats.useProjectContext,
-      createdAt: chats.createdAt,
-      updatedAt: chats.updatedAt,
-      project: {
-        id: projects.id,
-        name: projects.name,
-        description: projects.description,
-      },
+      // Chat fields
+      chatId: chats.id,
+      chatUserId: chats.userId,
+      chatTitle: chats.title,
+      chatModel: chats.model,
+      chatSystemPrompt: chats.systemPrompt,
+      chatTemperature: chats.temperature,
+      chatProjectId: chats.projectId,
+      chatUseProjectContext: chats.useProjectContext,
+      chatCreatedAt: chats.createdAt,
+      chatUpdatedAt: chats.updatedAt,
+      // Project fields (will be null if no project)
+      projectId: projects.id,
+      projectName: projects.name,
+      projectDescription: projects.description,
     })
     .from(chats)
     .leftJoin(projects, eq(chats.projectId, projects.id))
     .where(eq(chats.userId, userId))
     .orderBy(desc(chats.updatedAt))
     .limit(50);
+
+  // Transform to expected structure
+  const userChats = results.map(row => ({
+    id: row.chatId,
+    userId: row.chatUserId,
+    title: row.chatTitle,
+    model: row.chatModel,
+    systemPrompt: row.chatSystemPrompt,
+    temperature: row.chatTemperature,
+    projectId: row.chatProjectId,
+    useProjectContext: row.chatUseProjectContext,
+    createdAt: row.chatCreatedAt,
+    updatedAt: row.chatUpdatedAt,
+    project: row.projectId ? {
+      id: row.projectId,
+      name: row.projectName,
+      description: row.projectDescription,
+    } : null,
+  }));
 
   // Debug logging
   console.log('[List Chats] Total chats:', userChats.length);
@@ -41,7 +61,7 @@ export async function listChatsHandler(
       userChats.filter(c => c.projectId && !c.project?.name).map(c => ({
         chatId: c.id,
         projectId: c.projectId,
-        project: c.project
+        projectName: c.project?.name,
       }))
     );
   }
