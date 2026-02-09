@@ -12,11 +12,12 @@ import { Brain } from 'lucide-react';
 import { AI_MODELS } from '@ai-chat/shared';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import type { Chat } from '@/types';
 
 export default function ChatPage() {
   const router = useRouter();
   const { isAuthenticated, user, clearAuth, hasHydrated } = useAuthStore();
-  const [chats, setChats] = useState<any[]>([]);
+  const [chats, setChats] = useState<Chat[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState('openai/gpt-3.5-turbo');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);

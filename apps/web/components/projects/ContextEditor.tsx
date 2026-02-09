@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import type { ContextSection, ContextSectionType } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
@@ -47,15 +48,19 @@ const SECTION_TYPES = [
 ] as const;
 
 export function ContextEditor({ projectId }: ContextEditorProps) {
-  const [sections, setSections] = useState<any[]>([]);
+  const [sections, setSections] = useState<ContextSection[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedSection, setSelectedSection] = useState<any>(null);
+  const [selectedSection, setSelectedSection] = useState<ContextSection | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
-    sectionType: 'about_project' as const,
+  const [formData, setFormData] = useState<{
+    sectionType: ContextSectionType;
+    title: string;
+    content: string;
+  }>({
+    sectionType: 'about_project',
     title: '',
     content: '',
   });

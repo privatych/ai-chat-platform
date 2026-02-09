@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import type { Chat } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   PlusCircle,
@@ -45,7 +46,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 interface ChatSidebarProps {
-  chats: any[];
+  chats: Chat[];
   currentChatId: string | null;
   selectedProjectId: string | null;
   onSelectChat: (chatId: string) => void;
@@ -67,20 +68,20 @@ export function ChatSidebar({
 }: ChatSidebarProps) {
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedChat, setSelectedChat] = useState<any>(null);
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [newTitle, setNewTitle] = useState('');
   const [isContextDialogOpen, setIsContextDialogOpen] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [filterByProject, setFilterByProject] = useState(true);
 
-  const handleRenameClick = (chat: any, e: React.MouseEvent) => {
+  const handleRenameClick = (chat: Chat, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedChat(chat);
     setNewTitle(chat.title);
     setRenameDialogOpen(true);
   };
 
-  const handleDeleteClick = (chat: any, e: React.MouseEvent) => {
+  const handleDeleteClick = (chat: Chat, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedChat(chat);
     setDeleteDialogOpen(true);
@@ -122,7 +123,7 @@ export function ChatSidebar({
     : chats;
 
   // Group chats by projectId
-  const groupedChats = filteredChats.reduce((groups: Record<string, any[]>, chat) => {
+  const groupedChats = filteredChats.reduce((groups: Record<string, Chat[]>, chat) => {
     const key = chat.projectId || 'no-project';
     if (!groups[key]) {
       groups[key] = [];
