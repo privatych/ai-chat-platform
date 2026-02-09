@@ -1,31 +1,76 @@
 /**
  * Environment variables validation
- * Ensures all required secrets are present at startup
+ * Ensures all required secrets are present and valid at startup
  */
 
+interface ValidationRule {
+  key: string;
+  validator?: (value: string) => boolean;
+  errorMessage?: string;
+}
+
+const MIN_JWT_SECRET_LENGTH = 32;
+
 export function validateEnv() {
-  const required = [
-    'JWT_SECRET',
-    'DATABASE_URL',
-    'OPENROUTER_API_KEY',
+  const rules: ValidationRule[] = [
+    {
+      key: 'JWT_SECRET',
+      validator: (value) => value.length >= MIN_JWT_SECRET_LENGTH,
+      errorMessage: `JWT_SECRET must be at least ${MIN_JWT_SECRET_LENGTH} characters long for security`,
+    },
+    {
+      key: 'DATABASE_URL',
+      validator: (value) => value.startsWith('postgresql://'),
+      errorMessage: 'DATABASE_URL must be a valid PostgreSQL connection string (postgresql://...)',
+    },
+    {
+      key: 'OPENROUTER_API_KEY',
+      validator: (value) => value.length > 0,
+      errorMessage: 'OPENROUTER_API_KEY cannot be empty',
+    },
   ];
 
-  const missing: string[] = [];
+  const errors: string[] = [];
 
-  for (const key of required) {
-    if (!process.env[key]) {
-      missing.push(key);
+  for (const rule of rules) {
+    const value = process.env[rule.key];
+
+    if (!value) {
+      errors.push(`❌ ${rule.key} is not set`);
+    } else if (rule.validator && !rule.validator(value)) {
+      errors.push(`❌ ${rule.key}: ${rule.errorMessage}`);
     }
   }
 
-  if (missing.length > 0) {
-    console.error('❌ Missing required environment variables:');
-    missing.forEach(key => console.error(`   - ${key}`));
-    console.error('\nPlease set these variables in your .env file');
+  // Validate optional variables with defaults
+  const optionalWithDefaults = [
+    { key: 'PORT', default: '3001' },
+    { key: 'HOST', default: '0.0.0.0' },
+    { key: 'NODE_ENV', default: 'development' },
+    { key: 'FRONTEND_URL', default: 'http://localhost:3000' },
+  ];
+
+  for (const opt of optionalWithDefaults) {
+    if (!process.env[opt.key]) {
+      console.log(`ℹ️  ${opt.key} not set, using default: ${opt.default}`);
+      process.env[opt.key] = opt.default;
+    }
+  }
+
+  // Check Redis URL (optional but recommended for production)
+  if (!process.env.REDIS_URL) {
+    console.warn('⚠️  REDIS_URL not set - caching will be disabled');
+  }
+
+  if (errors.length > 0) {
+    console.error('\n🚨 Environment validation failed:\n');
+    errors.forEach(error => console.error(`   ${error}`));
+    console.error('\n💡 See .env.example for required environment variables');
+    console.error('📖 Documentation: DOCKER_DEPLOYMENT.md\n');
     process.exit(1);
   }
 
-  console.log('✅ All required environment variables are set');
+  console.log('✅ All required environment variables are valid');
 }
 
 export function getEnv(key: string): string {
