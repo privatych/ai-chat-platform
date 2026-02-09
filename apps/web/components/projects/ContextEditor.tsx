@@ -23,7 +23,17 @@ import {
 } from '@/components/ui/select';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
-import { Plus, FileText, User, Code, FolderOpen } from 'lucide-react';
+import { Plus, FileText, User, Code, FolderOpen, Pencil, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ContextEditorProps {
   projectId: string | null;
@@ -39,6 +49,9 @@ const SECTION_TYPES = [
 export function ContextEditor({ projectId }: ContextEditorProps) {
   const [sections, setSections] = useState<any[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedSection, setSelectedSection] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -83,6 +96,64 @@ export function ContextEditor({ projectId }: ContextEditorProps) {
       setIsCreateDialogOpen(false);
       setFormData({ sectionType: 'about_project', title: '', content: '' });
       toast.success('Секция создана');
+    }
+    setIsLoading(false);
+  };
+
+  const handleEditClick = (section: any) => {
+    setSelectedSection(section);
+    setFormData({
+      sectionType: section.sectionType,
+      title: section.title,
+      content: section.content || '',
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateSection = async () => {
+    if (!projectId || !selectedSection || !formData.title.trim()) {
+      toast.error('Заполните название секции');
+      return;
+    }
+
+    setIsLoading(true);
+    const response = await apiClient.updateContextSection(
+      projectId,
+      selectedSection.id,
+      formData.title.trim(),
+      formData.content.trim() || undefined
+    );
+
+    if (response.success) {
+      setSections(sections.map(s =>
+        s.id === selectedSection.id
+          ? { ...s, title: formData.title, content: formData.content }
+          : s
+      ));
+      setIsEditDialogOpen(false);
+      setSelectedSection(null);
+      setFormData({ sectionType: 'about_project', title: '', content: '' });
+      toast.success('Секция обновлена');
+    }
+    setIsLoading(false);
+  };
+
+  const handleDeleteClick = (section: any) => {
+    setSelectedSection(section);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!projectId || !selectedSection) return;
+
+    setIsLoading(true);
+    const response = await apiClient.deleteContextSection(projectId, selectedSection.id);
+
+    if (response.success) {
+      setSections(sections.filter(s => s.id !== selectedSection.id));
+      setIsDeleteDialogOpen(false);
+      setSelectedSection(null);
+      toast.success('Секция удалена');
     }
     setIsLoading(false);
   };
@@ -141,6 +212,24 @@ export function ContextEditor({ projectId }: ContextEditorProps) {
                       </CardDescription>
                     </div>
                   </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handleEditClick(section)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() => handleDeleteClick(section)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               {section.content && (
@@ -156,6 +245,85 @@ export function ContextEditor({ projectId }: ContextEditorProps) {
           ))}
         </div>
       )}
+
+      {/* Edit Section Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Редактировать секцию</DialogTitle>
+            <DialogDescription>
+              Измените информацию в секции контекста
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Тип секции</Label>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                {selectedSection && getSectionIcon(selectedSection.sectionType)}
+                {selectedSection && getSectionLabel(selectedSection.sectionType)}
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-title">Название</Label>
+              <Input
+                id="edit-title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Название секции"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-content">Содержимое</Label>
+              <Textarea
+                id="edit-content"
+                value={formData.content}
+                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                placeholder="Введите информацию для AI..."
+                rows={8}
+                className="font-mono text-sm"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsEditDialogOpen(false);
+                setSelectedSection(null);
+                setFormData({ sectionType: 'about_project', title: '', content: '' });
+              }}
+              disabled={isLoading}
+            >
+              Отмена
+            </Button>
+            <Button onClick={handleUpdateSection} disabled={isLoading}>
+              Сохранить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Секция "{selectedSection?.title}" будет удалена навсегда. Это действие нельзя отменить.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLoading}>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isLoading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Create Section Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>

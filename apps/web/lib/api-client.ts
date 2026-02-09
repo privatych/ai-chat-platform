@@ -167,6 +167,12 @@ class ApiClient {
     });
   }
 
+  async deleteContextSection(projectId: string, sectionId: string) {
+    return this.request<{ message: string }>(`/api/projects/${projectId}/context/sections/${sectionId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // SSE streaming for messages
   async streamMessage(
     chatId: string,
