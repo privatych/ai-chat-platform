@@ -4,18 +4,38 @@ import { db, chats, messages, projects, contextSections } from '@ai-chat/databas
 import { eq } from 'drizzle-orm';
 import { streamChatCompletion, formatMessageWithAttachments } from '../../services/openrouter';
 
+// File validation constants
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_ATTACHMENTS = 10;
+const ALLOWED_MIME_TYPES = [
+  // Images
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  // Documents
+  'application/pdf',
+  'text/plain',
+  'text/markdown',
+  'application/json',
+  'text/csv',
+  // Archives (if needed)
+  'application/zip',
+];
+
 const attachmentSchema = z.object({
   type: z.enum(['image', 'file']),
   name: z.string(),
   mimeType: z.string(),
   data: z.string(),
-  size: z.number(),
+  size: z.number().max(MAX_FILE_SIZE, `Размер файла не должен превышать ${MAX_FILE_SIZE / 1024 / 1024}MB`),
 });
 
 const sendMessageSchema = z.object({
   content: z.string().min(1),
   model: z.string().optional(),
-  attachments: z.array(attachmentSchema).optional(),
+  attachments: z.array(attachmentSchema).max(MAX_ATTACHMENTS, `Максимум ${MAX_ATTACHMENTS} файлов`).optional(),
 });
 
 async function buildSystemPromptWithContext(
@@ -72,6 +92,33 @@ export async function sendMessageHandler(
   const { chatId } = request.params;
   const body = sendMessageSchema.parse(request.body);
   const { content, model, attachments } = body;
+
+  // Validate attachments
+  if (attachments && attachments.length > 0) {
+    for (const attachment of attachments) {
+      // Check MIME type
+      if (!ALLOWED_MIME_TYPES.includes(attachment.mimeType)) {
+        return reply.code(400).send({
+          success: false,
+          error: {
+            code: 'INVALID_FILE_TYPE',
+            message: `Тип файла ${attachment.mimeType} не поддерживается`,
+          },
+        });
+      }
+
+      // Check file size (already validated by Zod, but double-check)
+      if (attachment.size > MAX_FILE_SIZE) {
+        return reply.code(400).send({
+          success: false,
+          error: {
+            code: 'FILE_TOO_LARGE',
+            message: `Файл ${attachment.name} слишком большой (максимум ${MAX_FILE_SIZE / 1024 / 1024}MB)`,
+          },
+        });
+      }
+    }
+  }
 
   // Verify chat ownership
   const [chat] = await db

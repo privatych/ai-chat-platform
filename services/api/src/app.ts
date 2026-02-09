@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import { ZodError } from 'zod';
+import rateLimit from '@fastify/rate-limit';
 import { corsPlugin } from './plugins/cors';
 import { jwtPlugin } from './plugins/jwt';
 import { authRoutes } from './routes/auth';
@@ -17,6 +18,22 @@ export async function buildApp() {
   // Register plugins
   await app.register(corsPlugin);
   await app.register(jwtPlugin);
+
+  // Rate limiting
+  await app.register(rateLimit, {
+    max: 100, // 100 requests
+    timeWindow: '15 minutes',
+    errorResponseBuilder: (req, context) => {
+      return {
+        success: false,
+        error: {
+          code: 'RATE_LIMIT_EXCEEDED',
+          message: 'Слишком много запросов. Пожалуйста, попробуйте позже.',
+          retryAfter: context.after,
+        },
+      };
+    },
+  });
 
   // Register routes
   await app.register(authRoutes, { prefix: '/api/auth' });
