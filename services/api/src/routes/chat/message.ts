@@ -121,16 +121,18 @@ export async function sendMessageHandler(
     .orderBy(messages.createdAt)
     .limit(20);
 
-  const chatMessages = history.map((m, index) => {
-    // Check if this is the latest user message with attachments
-    const isLatestUserMessage = index === history.length - 1 && m.role === 'user';
-    const messageAttachments = isLatestUserMessage ? attachments : (m.attachments as any);
+  const chatMessages = await Promise.all(
+    history.map(async (m, index) => {
+      // Check if this is the latest user message with attachments
+      const isLatestUserMessage = index === history.length - 1 && m.role === 'user';
+      const messageAttachments = isLatestUserMessage ? attachments : (m.attachments as any);
 
-    return {
-      role: m.role as 'user' | 'assistant' | 'system',
-      content: formatMessageWithAttachments(m.content, messageAttachments),
-    };
-  });
+      return {
+        role: m.role as 'user' | 'assistant' | 'system',
+        content: await formatMessageWithAttachments(m.content, messageAttachments),
+      };
+    })
+  );
 
   // Prepend system prompt if exists
   if (systemPrompt) {

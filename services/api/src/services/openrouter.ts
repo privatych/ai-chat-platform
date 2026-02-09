@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { extractTextFromFile } from '../utils/text-extractor';
 
 const openRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -23,10 +24,10 @@ interface Attachment {
   size: number;
 }
 
-export function formatMessageWithAttachments(
+export async function formatMessageWithAttachments(
   content: string,
   attachments?: Attachment[]
-): string | MessageContent[] {
+): Promise<string | MessageContent[]> {
   if (!attachments || attachments.length === 0) {
     return content;
   }
@@ -43,9 +44,28 @@ export function formatMessageWithAttachments(
           url: `data:${attachment.mimeType};base64,${attachment.data}`
         }
       });
+    } else if (attachment.type === 'file') {
+      // Extract text from PDF/TXT/JSON files
+      try {
+        const extractedText = await extractTextFromFile({
+          name: attachment.name,
+          mimeType: attachment.mimeType,
+          data: attachment.data,
+          size: attachment.size,
+        });
+
+        contentParts.push({
+          type: 'text',
+          text: `\n\n=== File: ${attachment.name} ===\n${extractedText}\n=== End of file ===\n`
+        });
+      } catch (error: any) {
+        console.error(`Failed to extract text from ${attachment.name}:`, error);
+        contentParts.push({
+          type: 'text',
+          text: `\n\n[File: ${attachment.name} - Failed to extract text: ${error.message}]\n`
+        });
+      }
     }
-    // For files, we can add text content or similar handling
-    // For now, images are primary focus
   }
 
   return contentParts;
