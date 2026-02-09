@@ -40,8 +40,6 @@ export default function ChatPage() {
     try {
       const response = await apiClient.getChats();
       if (response.success && response.data) {
-        console.log('[Load Chats] Loaded chats:', response.data);
-        console.log('[Load Chats] First chat:', response.data[0]);
         setChats(response.data);
       } else {
         toast.error('Не удалось загрузить чаты');

@@ -14,16 +14,12 @@ export async function deleteSectionHandler(
   const { projectId, id } = request.params;
   const userId = (request.user as any).userId;
 
-  console.log('[Delete Section] Request:', { projectId, id, userId });
-
   // Verify project ownership before deleting section
   const [section] = await db
     .select()
     .from(contextSections)
     .where(eq(contextSections.id, id))
     .limit(1);
-
-  console.log('[Delete Section] Found section:', section);
 
   if (!section) {
     return reply.code(404).send({

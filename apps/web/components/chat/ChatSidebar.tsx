@@ -132,21 +132,6 @@ export function ChatSidebar({
     return groups;
   }, {});
 
-  // Debug logging
-  if (Object.keys(groupedChats).length > 0) {
-    console.log('[ChatSidebar] All chats:', chats);
-    console.log('[ChatSidebar] Grouped chats:', groupedChats);
-
-    Object.entries(groupedChats).forEach(([groupId, groupChats]) => {
-      const chat = groupChats[0];
-      console.log(`[ChatSidebar] Group ${groupId}:`, {
-        projectId: chat.projectId,
-        project: chat.project,
-        projectName: chat.project?.name,
-        projectId_from_project: chat.project?.id,
-      });
-    });
-  }
 
   return (
     <>
@@ -203,21 +188,8 @@ export function ChatSidebar({
               const isNoProject = groupId === 'no-project';
 
               // Get project name from first chat in group
-              const firstChat = groupChats[0];
-              const project = firstChat?.project;
-
-              // Try multiple ways to get project name
-              let projectName = project?.name;
-
-              // If still no name, try to find project in projects list by ID
-              if (!projectName && firstChat?.projectId && selectedProjectId) {
-                // This means we have a projectId but no project object from API
-                console.warn('[ChatSidebar] Chat has projectId but no project object:', {
-                  chatId: firstChat.id,
-                  projectId: firstChat.projectId,
-                  project: project,
-                });
-              }
+              const project = groupChats[0]?.project;
+              const projectName = project?.name;
 
               const groupName = isNoProject
                 ? 'Без проекта'

@@ -52,20 +52,6 @@ export async function listChatsHandler(
     } : null,
   }));
 
-  // Debug logging
-  console.log('[List Chats] Total chats:', userChats.length);
-  if (userChats.length > 0) {
-    console.log('[List Chats] First chat:', JSON.stringify(userChats[0], null, 2));
-    console.log('[List Chats] Chats with projects:', userChats.filter(c => c.project?.name).length);
-    console.log('[List Chats] Chats with projectId but no project.name:',
-      userChats.filter(c => c.projectId && !c.project?.name).map(c => ({
-        chatId: c.id,
-        projectId: c.projectId,
-        projectName: c.project?.name,
-      }))
-    );
-  }
-
   return reply.send({
     success: true,
     data: userChats,
