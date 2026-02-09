@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Send } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { FileUpload, Attachment } from './FileUpload';
 import { AI_MODELS } from '@ai-chat/shared';
+import { toast } from 'sonner';
 
 interface MessageInputProps {
   chatId: string;
@@ -30,6 +31,32 @@ export function MessageInput({
   );
   const supportsVision = currentModel?.supportsVision || false;
   const supportsFiles = currentModel?.supportsFiles || false;
+
+  // Clear incompatible attachments when model changes
+  useEffect(() => {
+    if (attachments.length === 0) return;
+
+    const incompatibleAttachments = attachments.filter(att => {
+      if (att.type === 'image' && !supportsVision) return true;
+      if (att.type === 'file' && !supportsFiles) return true;
+      return false;
+    });
+
+    if (incompatibleAttachments.length > 0) {
+      const compatibleAttachments = attachments.filter(att => {
+        if (att.type === 'image') return supportsVision;
+        if (att.type === 'file') return supportsFiles;
+        return false;
+      });
+
+      setAttachments(compatibleAttachments);
+
+      const removedNames = incompatibleAttachments.map(a => a.name).join(', ');
+      toast.warning(
+        `Файлы удалены: ${removedNames}. Текущая модель не поддерживает эти типы файлов.`
+      );
+    }
+  }, [selectedModel, supportsVision, supportsFiles]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
