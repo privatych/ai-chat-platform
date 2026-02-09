@@ -38,12 +38,12 @@ export async function buildApp() {
     }
 
     // Fastify errors (already have statusCode)
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error && typeof error.statusCode === 'number') {
       return reply.code(error.statusCode).send({
         success: false,
         error: {
-          code: error.code || 'ERROR',
-          message: error.message,
+          code: ('code' in error && typeof error.code === 'string') ? error.code : 'ERROR',
+          message: ('message' in error && typeof error.message === 'string') ? error.message : 'Unknown error',
         },
       });
     }

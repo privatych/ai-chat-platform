@@ -1,4 +1,5 @@
-import pdf from 'pdf-parse';
+// @ts-ignore - pdf-parse has type issues with ESM
+import pdfParse from 'pdf-parse';
 
 interface FileObject {
   name: string;
@@ -14,7 +15,8 @@ export async function extractTextFromFile(file: FileObject): Promise<string> {
   switch (ext) {
     case 'pdf':
       try {
-        const result = await pdf(buffer);
+        // @ts-ignore - pdf-parse callable type issue
+        const result = await pdfParse(buffer);
         return result.text;
       } catch (error: any) {
         throw new Error(`Failed to parse PDF: ${error.message}`);

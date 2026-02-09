@@ -124,8 +124,10 @@ export function UserMenu({ onLogout }: UserMenuProps) {
                 <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                   <Calendar className="h-3 w-3" />
                   <span>
-                    {isPremium
+                    {isPremium && user.subscriptionExpiresAt
                       ? `До ${formatDate(user.subscriptionExpiresAt)}`
+                      : isPremium
+                      ? 'Активна'
                       : 'Базовый доступ'
                     }
                   </span>
