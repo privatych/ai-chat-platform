@@ -223,6 +223,11 @@ class ApiClient {
           try {
             const data = JSON.parse(dataStr);
 
+            if (data.error) {
+              console.error('[API Client] Stream error:', data.error);
+              throw new Error(data.error);
+            }
+
             if (data.delta) {
               onChunk(data.delta);
             }
@@ -233,6 +238,7 @@ class ApiClient {
             }
           } catch (e) {
             console.error('[API Client] Failed to parse JSON:', dataStr, e);
+            throw e;
           }
         }
       }

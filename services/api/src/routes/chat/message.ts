@@ -183,7 +183,8 @@ export async function sendMessageHandler(
     );
   } catch (error) {
     console.error('[Message Handler] Error during streaming:', error);
-    reply.raw.write(`data: ${JSON.stringify({ error: 'Streaming failed' })}\n\n`);
+    const errorMessage = error instanceof Error ? error.message : 'Streaming failed';
+    reply.raw.write(`data: ${JSON.stringify({ error: errorMessage })}\n\n`);
     reply.raw.end();
   }
 }
