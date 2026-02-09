@@ -1,16 +1,24 @@
-import { PDFParse } from 'pdf-parse';
+import pdf from 'pdf-parse';
 
-export async function extractTextFromFile(
-  buffer: Buffer,
-  filename: string
-): Promise<string> {
-  const ext = filename.toLowerCase().split('.').pop();
+interface FileObject {
+  name: string;
+  mimeType: string;
+  data: string; // base64
+  size?: number;
+}
+
+export async function extractTextFromFile(file: FileObject): Promise<string> {
+  const ext = file.name.toLowerCase().split('.').pop();
+  const buffer = Buffer.from(file.data, 'base64');
 
   switch (ext) {
     case 'pdf':
-      const parser = new PDFParse({ data: buffer });
-      const result = await parser.getText();
-      return result.text;
+      try {
+        const result = await pdf(buffer);
+        return result.text;
+      } catch (error: any) {
+        throw new Error(`Failed to parse PDF: ${error.message}`);
+      }
 
     case 'txt':
     case 'md':
