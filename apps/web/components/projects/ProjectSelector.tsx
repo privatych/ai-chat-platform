@@ -22,7 +22,23 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
-import { Plus, FolderOpen } from 'lucide-react';
+import { Plus, FolderOpen, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ProjectSelectorProps {
   selectedProjectId: string | null;
@@ -35,6 +51,9 @@ export function ProjectSelector({
 }: ProjectSelectorProps) {
   const [projects, setProjects] = useState<any[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDescription, setNewProjectDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -77,6 +96,74 @@ export function ProjectSelector({
     setIsLoading(false);
   };
 
+  const handleRenameClick = () => {
+    const project = projects.find(p => p.id === selectedProjectId);
+    if (project) {
+      setSelectedProject(project);
+      setNewProjectName(project.name);
+      setNewProjectDescription(project.description || '');
+      setIsRenameDialogOpen(true);
+    }
+  };
+
+  const handleRenameProject = async () => {
+    if (!selectedProject || !newProjectName.trim()) {
+      toast.error('Введите название проекта');
+      return;
+    }
+
+    setIsLoading(true);
+    const response = await apiClient.updateProject(
+      selectedProject.id,
+      newProjectName.trim(),
+      newProjectDescription.trim() || undefined
+    );
+
+    if (response.success) {
+      setProjects(projects.map(p =>
+        p.id === selectedProject.id
+          ? { ...p, name: newProjectName, description: newProjectDescription }
+          : p
+      ));
+      setIsRenameDialogOpen(false);
+      setSelectedProject(null);
+      setNewProjectName('');
+      setNewProjectDescription('');
+      toast.success('Проект переименован');
+    }
+    setIsLoading(false);
+  };
+
+  const handleDeleteClick = () => {
+    const project = projects.find(p => p.id === selectedProjectId);
+    if (project) {
+      setSelectedProject(project);
+      setIsDeleteDialogOpen(true);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedProject) return;
+
+    setIsLoading(true);
+    const response = await apiClient.deleteProject(selectedProject.id);
+
+    if (response.success) {
+      const newProjects = projects.filter(p => p.id !== selectedProject.id);
+      setProjects(newProjects);
+
+      // Select first project or null
+      if (selectedProjectId === selectedProject.id) {
+        onProjectChange(newProjects[0]?.id || '');
+      }
+
+      setIsDeleteDialogOpen(false);
+      setSelectedProject(null);
+      toast.success('Проект удалён');
+    }
+    setIsLoading(false);
+  };
+
   return (
     <>
       <div className="flex gap-2 items-center">
@@ -109,7 +196,103 @@ export function ProjectSelector({
         >
           <Plus className="h-4 w-4" />
         </Button>
+
+        {selectedProjectId && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" title="Управление проектом">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleRenameClick}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Переименовать
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleDeleteClick}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Удалить
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
+
+      {/* Rename Project Dialog */}
+      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Переименовать проект</DialogTitle>
+            <DialogDescription>
+              Изменить название и описание проекта
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="rename-name">Название</Label>
+              <Input
+                id="rename-name"
+                value={newProjectName}
+                onChange={(e) => setNewProjectName(e.target.value)}
+                placeholder="Название проекта"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="rename-description">Описание (опционально)</Label>
+              <Textarea
+                id="rename-description"
+                value={newProjectDescription}
+                onChange={(e) => setNewProjectDescription(e.target.value)}
+                placeholder="Краткое описание проекта"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsRenameDialogOpen(false);
+                setSelectedProject(null);
+                setNewProjectName('');
+                setNewProjectDescription('');
+              }}
+              disabled={isLoading}
+            >
+              Отмена
+            </Button>
+            <Button onClick={handleRenameProject} disabled={isLoading}>
+              Сохранить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Project Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Проект "{selectedProject?.name}" и все связанные чаты будут удалены навсегда.
+              Это действие нельзя отменить.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLoading}>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isLoading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Create Project Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
