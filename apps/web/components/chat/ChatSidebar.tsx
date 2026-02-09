@@ -8,7 +8,10 @@ import {
   MoreVertical,
   Pencil,
   Trash2,
-  Settings
+  Settings,
+  ChevronDown,
+  ChevronRight,
+  FolderOpen
 } from 'lucide-react';
 import { ProjectSelector } from '@/components/projects/ProjectSelector';
 import { ContextEditor } from '@/components/projects/ContextEditor';
@@ -64,6 +67,7 @@ export function ChatSidebar({
   const [newTitle, setNewTitle] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isContextDialogOpen, setIsContextDialogOpen] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   const handleRenameClick = (chat: any, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -102,6 +106,28 @@ export function ChatSidebar({
     }
   };
 
+  const toggleGroup = (groupId: string) => {
+    setCollapsedGroups(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupId)) {
+        newSet.delete(groupId);
+      } else {
+        newSet.add(groupId);
+      }
+      return newSet;
+    });
+  };
+
+  // Group chats by projectId
+  const groupedChats = chats.reduce((groups: Record<string, any[]>, chat) => {
+    const key = chat.projectId || 'no-project';
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+    groups[key].push(chat);
+    return groups;
+  }, {});
+
   return (
     <>
       <div className="w-64 border-r bg-muted/10 flex flex-col">
@@ -130,51 +156,81 @@ export function ChatSidebar({
           </Button>
         </div>
         <ScrollArea className="flex-1">
-          <div className="p-2 space-y-1">
-            {chats.map((chat) => (
-              <div
-                key={chat.id}
-                className={`group relative flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${
-                  currentChatId === chat.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-muted'
-                }`}
-              >
-                <button
-                  onClick={() => onSelectChat(chat.id)}
-                  className="flex-1 text-left truncate"
-                >
-                  <div className="truncate font-medium">{chat.title}</div>
-                  <div className="text-xs opacity-70 truncate">{chat.model}</div>
-                </button>
+          <div className="p-2 space-y-3">
+            {Object.entries(groupedChats).map(([groupId, groupChats]) => {
+              const isCollapsed = collapsedGroups.has(groupId);
+              const isNoProject = groupId === 'no-project';
+              const groupName = isNoProject ? 'Без проекта' : (groupChats[0]?.project?.name || 'Проект');
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={(e) => handleRenameClick(chat, e)}>
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Переименовать
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={(e) => handleDeleteClick(chat, e)}
-                      className="text-destructive focus:text-destructive"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Удалить
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            ))}
+              return (
+                <div key={groupId} className="space-y-1">
+                  {/* Group Header */}
+                  <button
+                    onClick={() => toggleGroup(groupId)}
+                    className="w-full flex items-center gap-2 px-2 py-1 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {isCollapsed ? (
+                      <ChevronRight className="h-3 w-3" />
+                    ) : (
+                      <ChevronDown className="h-3 w-3" />
+                    )}
+                    <FolderOpen className="h-3 w-3" />
+                    <span className="truncate flex-1 text-left">{groupName}</span>
+                    <span className="text-xs">{groupChats.length}</span>
+                  </button>
+
+                  {/* Group Chats */}
+                  {!isCollapsed && (
+                    <div className="space-y-1 pl-2">
+                      {groupChats.map((chat) => (
+                        <div
+                          key={chat.id}
+                          className={`group relative flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${
+                            currentChatId === chat.id
+                              ? 'bg-primary text-primary-foreground'
+                              : 'hover:bg-muted'
+                          }`}
+                        >
+                          <button
+                            onClick={() => onSelectChat(chat.id)}
+                            className="flex-1 text-left truncate"
+                          >
+                            <div className="truncate font-medium">{chat.title}</div>
+                            <div className="text-xs opacity-70 truncate">{chat.model}</div>
+                          </button>
+
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={(e) => handleRenameClick(chat, e)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Переименовать
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => handleDeleteClick(chat, e)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Удалить
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </ScrollArea>
       </div>
