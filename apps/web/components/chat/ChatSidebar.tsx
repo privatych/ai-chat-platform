@@ -185,7 +185,14 @@ export function ChatSidebar({
             {Object.entries(groupedChats).map(([groupId, groupChats]) => {
               const isCollapsed = collapsedGroups.has(groupId);
               const isNoProject = groupId === 'no-project';
-              const groupName = isNoProject ? 'Без проекта' : (groupChats[0]?.project?.name || 'Проект');
+
+              // Get project name from first chat in group
+              // Note: leftJoin returns { id: null, name: null } when no project, not null itself
+              const project = groupChats[0]?.project;
+              const projectName = project?.name;
+              const groupName = isNoProject
+                ? 'Без проекта'
+                : (projectName || 'Неизвестный проект');
 
               return (
                 <div key={groupId} className="space-y-1">
