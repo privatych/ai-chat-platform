@@ -1,0 +1,43 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+
+# Next.js
+.next
+out
+
+# Production
+dist
+build
+
+# Misc
+.DS_Store
+*.log
+*.tsbuildinfo
+
+# Environment
+.env
+.env*.local
+
+# IDEs
+.vscode
+.idea
+
+# Git
+.git
+.gitignore
+
+# Documentation
+docs
+*.md
+!README.md
+
+# CI/CD
+.github
+
+# Turbo
+.turbo

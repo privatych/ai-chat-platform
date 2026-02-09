@@ -35,6 +35,15 @@ export async function buildApp() {
     },
   });
 
+  // Health check endpoint
+  app.get('/health', async (request, reply) => {
+    return reply.send({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    });
+  });
+
   // Register routes
   await app.register(authRoutes, { prefix: '/api/auth' });
   await app.register(chatRoutes, { prefix: '/api/chat' });
