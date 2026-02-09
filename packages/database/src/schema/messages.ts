@@ -6,6 +6,7 @@ export const messages = pgTable('messages', {
   chatId: uuid('chat_id').notNull().references(() => chats.id, { onDelete: 'cascade' }),
   role: varchar('role', { length: 20 }).notNull(), // 'user', 'assistant', 'system'
   content: text('content').notNull(),
+  attachments: jsonb('attachments'), // Array of {type: 'image'|'file', url: string, name: string, mimeType: string}
   metadata: jsonb('metadata'),
   tokensUsed: integer('tokens_used'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
