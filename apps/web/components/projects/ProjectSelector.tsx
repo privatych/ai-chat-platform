@@ -63,13 +63,20 @@ export function ProjectSelector({
   }, []);
 
   const loadProjects = async () => {
-    const response = await apiClient.listProjects();
-    if (response.success && response.data) {
-      setProjects(response.data);
-      // Auto-select first project if none selected
-      if (!selectedProjectId && response.data.length > 0) {
-        onProjectChange(response.data[0].id);
+    try {
+      const response = await apiClient.listProjects();
+      if (response.success && response.data) {
+        setProjects(response.data);
+        // Auto-select first project if none selected
+        if (!selectedProjectId && response.data.length > 0) {
+          onProjectChange(response.data[0].id);
+        }
+      } else {
+        toast.error('Не удалось загрузить проекты');
       }
+    } catch (error) {
+      console.error('Failed to load projects:', error);
+      toast.error('Ошибка при загрузке проектов');
     }
   };
 
@@ -80,20 +87,28 @@ export function ProjectSelector({
     }
 
     setIsLoading(true);
-    const response = await apiClient.createProject(
-      newProjectName.trim(),
-      newProjectDescription.trim() || undefined
-    );
+    try {
+      const response = await apiClient.createProject(
+        newProjectName.trim(),
+        newProjectDescription.trim() || undefined
+      );
 
-    if (response.success && response.data) {
-      setProjects([...projects, response.data]);
-      onProjectChange(response.data.id);
-      setIsCreateDialogOpen(false);
-      setNewProjectName('');
-      setNewProjectDescription('');
-      toast.success('Проект создан');
+      if (response.success && response.data) {
+        setProjects([...projects, response.data]);
+        onProjectChange(response.data.id);
+        setIsCreateDialogOpen(false);
+        setNewProjectName('');
+        setNewProjectDescription('');
+        toast.success('Проект создан');
+      } else {
+        toast.error('Не удалось создать проект');
+      }
+    } catch (error) {
+      console.error('Failed to create project:', error);
+      toast.error('Ошибка при создании проекта');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleRenameClick = () => {
@@ -113,25 +128,33 @@ export function ProjectSelector({
     }
 
     setIsLoading(true);
-    const response = await apiClient.updateProject(
-      selectedProject.id,
-      newProjectName.trim(),
-      newProjectDescription.trim() || undefined
-    );
+    try {
+      const response = await apiClient.updateProject(
+        selectedProject.id,
+        newProjectName.trim(),
+        newProjectDescription.trim() || undefined
+      );
 
-    if (response.success) {
-      setProjects(projects.map(p =>
-        p.id === selectedProject.id
-          ? { ...p, name: newProjectName, description: newProjectDescription }
-          : p
-      ));
-      setIsRenameDialogOpen(false);
-      setSelectedProject(null);
-      setNewProjectName('');
-      setNewProjectDescription('');
-      toast.success('Проект переименован');
+      if (response.success) {
+        setProjects(projects.map(p =>
+          p.id === selectedProject.id
+            ? { ...p, name: newProjectName, description: newProjectDescription }
+            : p
+        ));
+        setIsRenameDialogOpen(false);
+        setSelectedProject(null);
+        setNewProjectName('');
+        setNewProjectDescription('');
+        toast.success('Проект переименован');
+      } else {
+        toast.error('Не удалось переименовать проект');
+      }
+    } catch (error) {
+      console.error('Failed to rename project:', error);
+      toast.error('Ошибка при переименовании проекта');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleDeleteClick = () => {
@@ -146,22 +169,30 @@ export function ProjectSelector({
     if (!selectedProject) return;
 
     setIsLoading(true);
-    const response = await apiClient.deleteProject(selectedProject.id);
+    try {
+      const response = await apiClient.deleteProject(selectedProject.id);
 
-    if (response.success) {
-      const newProjects = projects.filter(p => p.id !== selectedProject.id);
-      setProjects(newProjects);
+      if (response.success) {
+        const newProjects = projects.filter(p => p.id !== selectedProject.id);
+        setProjects(newProjects);
 
-      // Select first project or null
-      if (selectedProjectId === selectedProject.id) {
-        onProjectChange(newProjects[0]?.id || null);
+        // Select first project or null
+        if (selectedProjectId === selectedProject.id) {
+          onProjectChange(newProjects[0]?.id || null);
+        }
+
+        setIsDeleteDialogOpen(false);
+        setSelectedProject(null);
+        toast.success('Проект удалён');
+      } else {
+        toast.error('Не удалось удалить проект');
       }
-
-      setIsDeleteDialogOpen(false);
-      setSelectedProject(null);
-      toast.success('Проект удалён');
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+      toast.error('Ошибка при удалении проекта');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (

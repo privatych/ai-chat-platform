@@ -71,9 +71,16 @@ export function ContextEditor({ projectId }: ContextEditorProps) {
   const loadSections = async () => {
     if (!projectId) return;
 
-    const response = await apiClient.listContextSections(projectId);
-    if (response.success && response.data) {
-      setSections(response.data);
+    try {
+      const response = await apiClient.listContextSections(projectId);
+      if (response.success && response.data) {
+        setSections(response.data);
+      } else {
+        toast.error('Не удалось загрузить секции контекста');
+      }
+    } catch (error) {
+      console.error('Failed to load context sections:', error);
+      toast.error('Ошибка при загрузке секций');
     }
   };
 
@@ -84,20 +91,28 @@ export function ContextEditor({ projectId }: ContextEditorProps) {
     }
 
     setIsLoading(true);
-    const response = await apiClient.createContextSection(
-      projectId,
-      formData.sectionType,
-      formData.title.trim(),
-      formData.content.trim() || undefined
-    );
+    try {
+      const response = await apiClient.createContextSection(
+        projectId,
+        formData.sectionType,
+        formData.title.trim(),
+        formData.content.trim() || undefined
+      );
 
-    if (response.success && response.data) {
-      setSections([...sections, response.data]);
-      setIsCreateDialogOpen(false);
-      setFormData({ sectionType: 'about_project', title: '', content: '' });
-      toast.success('Секция создана');
+      if (response.success && response.data) {
+        setSections([...sections, response.data]);
+        setIsCreateDialogOpen(false);
+        setFormData({ sectionType: 'about_project', title: '', content: '' });
+        toast.success('Секция создана');
+      } else {
+        toast.error('Не удалось создать секцию');
+      }
+    } catch (error) {
+      console.error('Failed to create context section:', error);
+      toast.error('Ошибка при создании секции');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleEditClick = (section: any) => {
@@ -117,25 +132,33 @@ export function ContextEditor({ projectId }: ContextEditorProps) {
     }
 
     setIsLoading(true);
-    const response = await apiClient.updateContextSection(
-      projectId,
-      selectedSection.id,
-      formData.title.trim(),
-      formData.content.trim() || undefined
-    );
+    try {
+      const response = await apiClient.updateContextSection(
+        projectId,
+        selectedSection.id,
+        formData.title.trim(),
+        formData.content.trim() || undefined
+      );
 
-    if (response.success) {
-      setSections(sections.map(s =>
-        s.id === selectedSection.id
-          ? { ...s, title: formData.title, content: formData.content }
-          : s
-      ));
-      setIsEditDialogOpen(false);
-      setSelectedSection(null);
-      setFormData({ sectionType: 'about_project', title: '', content: '' });
-      toast.success('Секция обновлена');
+      if (response.success) {
+        setSections(sections.map(s =>
+          s.id === selectedSection.id
+            ? { ...s, title: formData.title, content: formData.content }
+            : s
+        ));
+        setIsEditDialogOpen(false);
+        setSelectedSection(null);
+        setFormData({ sectionType: 'about_project', title: '', content: '' });
+        toast.success('Секция обновлена');
+      } else {
+        toast.error('Не удалось обновить секцию');
+      }
+    } catch (error) {
+      console.error('Failed to update context section:', error);
+      toast.error('Ошибка при обновлении секции');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleDeleteClick = (section: any) => {
@@ -147,15 +170,23 @@ export function ContextEditor({ projectId }: ContextEditorProps) {
     if (!projectId || !selectedSection) return;
 
     setIsLoading(true);
-    const response = await apiClient.deleteContextSection(projectId, selectedSection.id);
+    try {
+      const response = await apiClient.deleteContextSection(projectId, selectedSection.id);
 
-    if (response.success) {
-      setSections(sections.filter(s => s.id !== selectedSection.id));
-      setIsDeleteDialogOpen(false);
-      setSelectedSection(null);
-      toast.success('Секция удалена');
+      if (response.success) {
+        setSections(sections.filter(s => s.id !== selectedSection.id));
+        setIsDeleteDialogOpen(false);
+        setSelectedSection(null);
+        toast.success('Секция удалена');
+      } else {
+        toast.error('Не удалось удалить секцию');
+      }
+    } catch (error) {
+      console.error('Failed to delete context section:', error);
+      toast.error('Ошибка при удалении секции');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const getSectionIcon = (type: string) => {

@@ -36,32 +36,53 @@ export default function ChatPage() {
   }, [isAuthenticated, hasHydrated, router]);
 
   const loadChats = async () => {
-    const response = await apiClient.getChats();
-    if (response.success && response.data) {
-      setChats(response.data);
+    try {
+      const response = await apiClient.getChats();
+      if (response.success && response.data) {
+        setChats(response.data);
+      } else {
+        toast.error('Не удалось загрузить чаты');
+      }
+    } catch (error) {
+      console.error('Failed to load chats:', error);
+      toast.error('Ошибка при загрузке чатов');
     }
   };
 
   const createNewChat = async () => {
-    const response = await apiClient.createChat(
-      'Новый чат',
-      selectedModel,
-      selectedProjectId || undefined
-    );
-    if (response.success && response.data) {
-      setChats([response.data, ...chats]);
-      setCurrentChatId(response.data.id);
-      toast.success('Чат создан');
+    try {
+      const response = await apiClient.createChat(
+        'Новый чат',
+        selectedModel,
+        selectedProjectId || undefined
+      );
+      if (response.success && response.data) {
+        setChats([response.data, ...chats]);
+        setCurrentChatId(response.data.id);
+        toast.success('Чат создан');
+      } else {
+        toast.error('Не удалось создать чат');
+      }
+    } catch (error) {
+      console.error('Failed to create chat:', error);
+      toast.error('Ошибка при создании чата');
     }
   };
 
   const handleRenameChat = async (chatId: string, newTitle: string) => {
-    const response = await apiClient.renameChat(chatId, newTitle);
-    if (response.success && response.data) {
-      setChats(chats.map(chat =>
-        chat.id === chatId ? { ...chat, title: newTitle } : chat
-      ));
-      toast.success('Чат переименован');
+    try {
+      const response = await apiClient.renameChat(chatId, newTitle);
+      if (response.success && response.data) {
+        setChats(chats.map(chat =>
+          chat.id === chatId ? { ...chat, title: newTitle } : chat
+        ));
+        toast.success('Чат переименован');
+      } else {
+        toast.error('Не удалось переименовать чат');
+      }
+    } catch (error) {
+      console.error('Failed to rename chat:', error);
+      toast.error('Ошибка при переименовании чата');
     }
   };
 
