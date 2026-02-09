@@ -15,15 +15,15 @@ export const RATE_LIMITS = {
 // Available AI models
 export const AI_MODELS = {
   free: [
-    { id: 'openai/gpt-3.5-turbo', name: 'GPT-3.5 Turbo', provider: 'OpenAI' },
-    { id: 'google/gemini-flash-1.5', name: 'Gemini Flash', provider: 'Google' },
-    { id: 'meta-llama/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', provider: 'Meta' },
+    { id: 'openai/gpt-3.5-turbo', name: 'GPT-3.5 Turbo', provider: 'OpenAI', supportsVision: false, supportsFiles: false },
+    { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash', provider: 'Google', supportsVision: true, supportsFiles: true },
+    { id: 'meta-llama/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', provider: 'Meta', supportsVision: false, supportsFiles: false },
   ],
   premium: [
-    { id: 'openai/gpt-4-turbo', name: 'GPT-4 Turbo', provider: 'OpenAI' },
-    { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'Anthropic' },
-    { id: 'google/gemini-pro-1.5', name: 'Gemini Pro', provider: 'Google' },
-    { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat', provider: 'DeepSeek' },
+    { id: 'openai/gpt-4-turbo', name: 'GPT-4 Turbo', provider: 'OpenAI', supportsVision: true, supportsFiles: false },
+    { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'Anthropic', supportsVision: true, supportsFiles: true },
+    { id: 'google/gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'Google', supportsVision: true, supportsFiles: true },
+    { id: 'meta-llama/llama-3.3-70b-instruct', name: 'Llama 3.3 70B', provider: 'Meta', supportsVision: false, supportsFiles: false },
   ],
 } as const;
 
