@@ -132,6 +132,17 @@ export function ChatSidebar({
     return groups;
   }, {});
 
+  // Debug logging
+  if (Object.keys(groupedChats).length > 0) {
+    console.log('[ChatSidebar] Grouped chats:', groupedChats);
+    console.log('[ChatSidebar] First group:', Object.entries(groupedChats)[0]);
+    const firstGroup = Object.values(groupedChats)[0];
+    if (firstGroup && firstGroup[0]) {
+      console.log('[ChatSidebar] First chat in first group:', firstGroup[0]);
+      console.log('[ChatSidebar] Project info:', firstGroup[0].project);
+    }
+  }
+
   return (
     <>
       <div className="w-64 border-r bg-muted/10 flex flex-col">
