@@ -9,7 +9,7 @@ export const adminActions = pgTable('admin_actions', {
   details: jsonb('details'), // { from: 'user', to: 'premiumuser' }
   ipAddress: varchar('ip_address', { length: 45 }),
   userAgent: text('user_agent'),
-  createdAt: timestamp('created_at').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   adminIdx: index('idx_admin_actions_admin').on(table.adminId, table.createdAt),
   targetIdx: index('idx_admin_actions_target').on(table.targetUserId, table.createdAt),

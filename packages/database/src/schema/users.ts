@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, timestamp, boolean, text } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, boolean, text, index } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -14,7 +14,10 @@ export const users = pgTable('users', {
   blockedAt: timestamp('blocked_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  roleIdx: index('idx_users_role').on(table.role),
+  blockedIdx: index('idx_users_blocked').on(table.isBlocked),
+}));
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
