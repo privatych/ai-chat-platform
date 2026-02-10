@@ -33,10 +33,12 @@ describe('Admin Auth Middleware', () => {
     // Mock request
     mockRequest = {
       ip: '127.0.0.1',
+      method: 'GET',
+      url: '/',
       headers: {
         'user-agent': 'Mozilla/5.0 (Test Agent)',
       },
-    };
+    } as Partial<FastifyRequest>;
   });
 
   describe('Authentication checks', () => {
@@ -225,14 +227,16 @@ describe('Admin Auth Middleware', () => {
 
   describe('Admin action logging', () => {
     it('should log admin action with correct details', async () => {
-      mockRequest.user = {
-        userId: 'admin-789',
-        email: 'superadmin@example.com',
-        subscriptionTier: 'premium',
-      };
-
-      mockRequest.method = 'GET';
-      mockRequest.url = '/api/admin/dashboard';
+      mockRequest = {
+        ...mockRequest,
+        user: {
+          userId: 'admin-789',
+          email: 'superadmin@example.com',
+          subscriptionTier: 'premium',
+        },
+        method: 'GET',
+        url: '/api/admin/dashboard',
+      } as Partial<FastifyRequest>;
 
       // Mock database query
       const mockSelect = {
@@ -279,15 +283,17 @@ describe('Admin Auth Middleware', () => {
     });
 
     it('should handle missing IP address', async () => {
-      mockRequest.user = {
-        userId: 'admin-111',
-        email: 'admin@example.com',
-        subscriptionTier: 'premium',
-      };
-
-      mockRequest.ip = undefined;
-      mockRequest.method = 'POST';
-      mockRequest.url = '/api/admin/users';
+      mockRequest = {
+        ...mockRequest,
+        user: {
+          userId: 'admin-111',
+          email: 'admin@example.com',
+          subscriptionTier: 'premium',
+        },
+        ip: undefined,
+        method: 'POST',
+        url: '/api/admin/users',
+      } as Partial<FastifyRequest>;
 
       // Mock database query
       const mockSelect = {
