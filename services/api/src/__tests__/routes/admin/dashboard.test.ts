@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { buildApp } from '../../../app';
 import { db } from '@ai-chat/database';
+import { SUBSCRIPTION_PLANS } from '@ai-chat/shared';
 
 // Mock the database
 vi.mock('@ai-chat/database', () => ({
@@ -29,13 +30,17 @@ vi.mock('@ai-chat/database', () => ({
 
 // Mock drizzle-orm functions
 vi.mock('drizzle-orm', () => ({
-  sql: vi.fn(),
-  eq: vi.fn(),
-  gte: vi.fn(),
-  and: vi.fn(),
-  desc: vi.fn(),
-  count: vi.fn(),
-  sum: vi.fn(),
+  sql: vi.fn((strings: TemplateStringsArray, ...values: any[]) => ({
+    _type: 'sql',
+    strings,
+    values,
+  })),
+  eq: vi.fn((col, val) => ({ _type: 'eq', col, val })),
+  gte: vi.fn((col, val) => ({ _type: 'gte', col, val })),
+  and: vi.fn((...conditions) => ({ _type: 'and', conditions })),
+  desc: vi.fn((col) => ({ _type: 'desc', col })),
+  count: vi.fn(() => ({ _type: 'count' })),
+  sum: vi.fn((col) => ({ _type: 'sum', col })),
 }));
 
 // Mock data
@@ -51,22 +56,28 @@ const mockRegularUser = {
   role: 'user',
 };
 
-const mockUsageLogs = [
-  {
-    id: '1',
-    userId: 'user-1',
-    model: 'gpt-4',
-    costUsd: '0.150000',
-    createdAt: new Date('2026-02-05'),
-  },
-  {
-    id: '2',
-    userId: 'user-2',
-    model: 'claude-3-opus',
-    costUsd: '0.200000',
-    createdAt: new Date('2026-02-06'),
-  },
-];
+// Helper function to setup admin authentication mocks
+function setupAdminMocks() {
+  // Mock admin user lookup
+  const mockUserSelect = vi.fn().mockReturnValue({
+    from: vi.fn().mockReturnValue({
+      where: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue([mockAdminUser]),
+      }),
+    }),
+  });
+
+  // Setup admin action logging insert mock
+  const mockInsert = vi.fn().mockReturnValue({
+    values: vi.fn().mockReturnValue({
+      returning: vi.fn().mockResolvedValue([{}]),
+    }),
+  });
+
+  vi.mocked(db.insert).mockImplementation(mockInsert as any);
+
+  return { mockUserSelect, mockInsert };
+}
 
 describe('Dashboard Overview Endpoint', () => {
   let app: Awaited<ReturnType<typeof buildApp>>;
@@ -87,22 +98,29 @@ describe('Dashboard Overview Endpoint', () => {
     app = await buildApp();
     await app.ready();
 
-    // Generate test tokens
-    adminToken = app.jwt.sign({ userId: mockAdminUser.id });
-    userToken = app.jwt.sign({ userId: mockRegularUser.id });
+    // Generate test tokens - JWT payload includes {userId, email, subscriptionTier}
+    adminToken = app.jwt.sign({
+      userId: mockAdminUser.id,
+      email: mockAdminUser.email,
+      subscriptionTier: 'premium'
+    });
+    userToken = app.jwt.sign({
+      userId: mockRegularUser.id,
+      email: mockRegularUser.email,
+      subscriptionTier: 'free'
+    });
   });
 
   describe('GET /api/admin/dashboard/overview', () => {
-    it('should return 403 for non-authenticated requests', async () => {
+    it('should return 401 for non-authenticated requests', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/api/admin/dashboard/overview',
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(401);
       const body = JSON.parse(response.body);
-      expect(body.success).toBe(false);
-      expect(body.error.code).toBe('FORBIDDEN');
+      expect(body.error).toBe('Unauthorized');
     });
 
     it('should return 403 for non-admin users', async () => {
@@ -276,6 +294,10 @@ describe('Dashboard Overview Endpoint', () => {
         totalRequests: expect.any(Number),
       });
 
+      // Verify revenue is calculated with RUB pricing (990 RUB * 5 users = 4950 RUB for 30d)
+      const expectedRevenue = 5 * SUBSCRIPTION_PLANS.premium.price; // 5 users * 990 RUB
+      expect(body.data.metrics.totalRevenue).toBe(expectedRevenue);
+
       // Verify chart data is an array
       expect(Array.isArray(body.data.costRevenueChart)).toBe(true);
       if (body.data.costRevenueChart.length > 0) {
@@ -288,56 +310,34 @@ describe('Dashboard Overview Endpoint', () => {
 
       // Verify top users
       expect(Array.isArray(body.data.topUsers)).toBe(true);
-      if (body.data.topUsers.length > 0) {
-        expect(body.data.topUsers[0]).toMatchObject({
-          userId: expect.any(String),
-          email: expect.any(String),
-          totalCost: expect.any(Number),
-          requestCount: expect.any(Number),
-        });
-      }
+      expect(body.data.topUsers.length).toBe(2);
+      expect(body.data.topUsers[0]).toMatchObject({
+        userId: 'user-1',
+        email: 'user1@example.com',
+        totalCost: 125.5,
+        requestCount: 500,
+      });
 
       // Verify top models
       expect(Array.isArray(body.data.topModels)).toBe(true);
-      if (body.data.topModels.length > 0) {
-        expect(body.data.topModels[0]).toMatchObject({
-          model: expect.any(String),
-          totalCost: expect.any(Number),
-          requestCount: expect.any(Number),
-        });
-      }
+      expect(body.data.topModels.length).toBe(2);
+      expect(body.data.topModels[0]).toMatchObject({
+        model: 'gpt-4',
+        totalCost: 200,
+        requestCount: 800,
+      });
     });
 
     it('should accept different period parameters', async () => {
       const periods = ['7d', '30d', '90d'];
 
       for (const period of periods) {
-        // Mock admin user lookup
-        const mockUserSelect = vi.fn().mockReturnValue({
-          from: vi.fn().mockReturnValue({
-            where: vi.fn().mockReturnValue({
-              limit: vi.fn().mockResolvedValue([mockAdminUser]),
-            }),
-          }),
-        });
+        vi.clearAllMocks();
+
+        const { mockUserSelect, mockInsert } = setupAdminMocks();
 
         // Mock all required queries with minimal data
-        const mockEmptyResult = vi.fn().mockReturnValue({
-          from: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue([]),
-            innerJoin: vi.fn().mockReturnValue({
-              where: vi.fn().mockResolvedValue([]),
-            }),
-            groupBy: vi.fn().mockReturnValue({
-              orderBy: vi.fn().mockResolvedValue([]),
-            }),
-          }),
-        });
-
-        const mockCountResult = vi.fn().mockReturnValue({
-          from: vi.fn().mockResolvedValue([{ totalUsers: 0 }]),
-        });
-
+        // Create separate mock instances for each query to avoid conflicts
         const mockMetricsResult = vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
             where: vi.fn().mockResolvedValue([
@@ -350,14 +350,60 @@ describe('Dashboard Overview Endpoint', () => {
           }),
         });
 
+        const mockCountResult = vi.fn().mockReturnValue({
+          from: vi.fn().mockResolvedValue([{ totalUsers: 0 }]),
+        });
+
+        const mockChartResult = vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockReturnValue({
+                orderBy: vi.fn().mockResolvedValue([]),
+              }),
+            }),
+          }),
+        });
+
+        const mockTopUsersResult = vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            innerJoin: vi.fn().mockReturnValue({
+              where: vi.fn().mockReturnValue({
+                groupBy: vi.fn().mockReturnValue({
+                  orderBy: vi.fn().mockReturnValue({
+                    limit: vi.fn().mockResolvedValue([]),
+                  }),
+                }),
+              }),
+            }),
+          }),
+        });
+
+        const mockTopModelsResult = vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockReturnValue({
+                orderBy: vi.fn().mockReturnValue({
+                  limit: vi.fn().mockResolvedValue([]),
+                }),
+              }),
+            }),
+          }),
+        });
+
+        const mockPremiumResult = vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([{ count: 0 }]),
+          }),
+        });
+
         vi.mocked(db.select)
           .mockImplementationOnce(mockUserSelect as any)
           .mockImplementationOnce(mockMetricsResult as any)
           .mockImplementationOnce(mockCountResult as any)
-          .mockImplementationOnce(mockEmptyResult as any)
-          .mockImplementationOnce(mockEmptyResult as any)
-          .mockImplementationOnce(mockEmptyResult as any)
-          .mockImplementationOnce(mockEmptyResult as any);
+          .mockImplementationOnce(mockChartResult as any)
+          .mockImplementationOnce(mockTopUsersResult as any)
+          .mockImplementationOnce(mockTopModelsResult as any)
+          .mockImplementationOnce(mockPremiumResult as any);
 
         const response = await app.inject({
           method: 'GET',
@@ -374,15 +420,7 @@ describe('Dashboard Overview Endpoint', () => {
     });
 
     it('should return 400 for invalid period parameter', async () => {
-      // Mock admin user lookup
-      const mockUserSelect = vi.fn().mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([mockAdminUser]),
-          }),
-        }),
-      });
-
+      const { mockUserSelect, mockInsert } = setupAdminMocks();
       vi.mocked(db.select).mockImplementation(mockUserSelect as any);
 
       const response = await app.inject({
@@ -400,16 +438,9 @@ describe('Dashboard Overview Endpoint', () => {
     });
 
     it('should handle database errors gracefully', async () => {
-      // Mock admin user lookup
-      const mockUserSelect = vi.fn().mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([mockAdminUser]),
-          }),
-        }),
-      });
+      const { mockUserSelect, mockInsert } = setupAdminMocks();
 
-      // Mock database error
+      // Mock database error on the metrics query
       const mockErrorSelect = vi.fn().mockReturnValue({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockRejectedValue(new Error('Database error')),
@@ -435,26 +466,18 @@ describe('Dashboard Overview Endpoint', () => {
     });
 
     it('should handle empty database results', async () => {
-      // Mock admin user lookup
-      const mockUserSelect = vi.fn().mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([mockAdminUser]),
-          }),
-        }),
-      });
+      const { mockUserSelect, mockInsert } = setupAdminMocks();
 
-      // Mock all queries to return empty results
-      const mockEmptyResult = vi.fn().mockReturnValue({
+      // Mock metrics query
+      const mockMetricsResult = vi.fn().mockReturnValue({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([]),
-          innerJoin: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue([]),
-          }),
-          groupBy: vi.fn().mockReturnValue({
-            orderBy: vi.fn().mockResolvedValue([]),
-            limit: vi.fn().mockResolvedValue([]),
-          }),
+          where: vi.fn().mockResolvedValue([
+            {
+              totalCosts: '0',
+              activeUsers: 0,
+              totalRequests: 0,
+            },
+          ]),
         }),
       });
 
@@ -462,14 +485,56 @@ describe('Dashboard Overview Endpoint', () => {
         from: vi.fn().mockResolvedValue([{ totalUsers: 0 }]),
       });
 
+      const mockChartResult = vi.fn().mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            groupBy: vi.fn().mockReturnValue({
+              orderBy: vi.fn().mockResolvedValue([]),
+            }),
+          }),
+        }),
+      });
+
+      const mockTopUsersResult = vi.fn().mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          innerJoin: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockReturnValue({
+                orderBy: vi.fn().mockReturnValue({
+                  limit: vi.fn().mockResolvedValue([]),
+                }),
+              }),
+            }),
+          }),
+        }),
+      });
+
+      const mockTopModelsResult = vi.fn().mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            groupBy: vi.fn().mockReturnValue({
+              orderBy: vi.fn().mockReturnValue({
+                limit: vi.fn().mockResolvedValue([]),
+              }),
+            }),
+          }),
+        }),
+      });
+
+      const mockPremiumResult = vi.fn().mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([{ count: 0 }]),
+        }),
+      });
+
       vi.mocked(db.select)
         .mockImplementationOnce(mockUserSelect as any)
-        .mockImplementationOnce(mockEmptyResult as any)
+        .mockImplementationOnce(mockMetricsResult as any)
         .mockImplementationOnce(mockCountResult as any)
-        .mockImplementationOnce(mockEmptyResult as any)
-        .mockImplementationOnce(mockEmptyResult as any)
-        .mockImplementationOnce(mockEmptyResult as any)
-        .mockImplementationOnce(mockEmptyResult as any);
+        .mockImplementationOnce(mockChartResult as any)
+        .mockImplementationOnce(mockTopUsersResult as any)
+        .mockImplementationOnce(mockTopModelsResult as any)
+        .mockImplementationOnce(mockPremiumResult as any);
 
       const response = await app.inject({
         method: 'GET',
