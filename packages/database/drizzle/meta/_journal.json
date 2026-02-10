@@ -8,6 +8,13 @@
       "when": 1769939922537,
       "tag": "0000_certain_dust",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1770687610287,
+      "tag": "0001_stale_princess_powerful",
+      "breakpoints": true
     }
   ]
 }
