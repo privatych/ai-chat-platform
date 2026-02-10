@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { db, chats, messages, projects, contextSections } from '@ai-chat/database';
 import { eq } from 'drizzle-orm';
 import { streamChatCompletion, formatMessageWithAttachments } from '../../services/openrouter';
+import { logUsage } from '../../utils/usage-logger';
 
 // File validation constants
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -223,6 +224,22 @@ export async function sendMessageHandler(
           content: assistantMessage,
           tokensUsed,
         });
+
+        // Log usage for analytics
+        try {
+          await logUsage({
+            userId,
+            eventType: 'chat_message',
+            model: currentModel,
+            tokensInput: Math.floor(tokensUsed * 0.4),  // Estimate input tokens as 40%
+            tokensOutput: Math.floor(tokensUsed * 0.6),  // Estimate output tokens as 60%
+            metadata: { chatId, messageLength: assistantMessage.length }
+          });
+          console.log(`[Message Handler] Usage logged successfully for chat ${chatId}`);
+        } catch (logError) {
+          // Don't break the chat flow if logging fails
+          console.error('[Message Handler] Failed to log usage:', logError);
+        }
 
         reply.raw.write(`data: ${JSON.stringify({ done: true, tokensUsed })}\n\n`);
         reply.raw.end();
