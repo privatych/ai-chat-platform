@@ -2,6 +2,12 @@ import { FastifyInstance } from 'fastify';
 import { authenticate } from '../../plugins/jwt';
 import { requireAdmin } from '../../middleware/admin-auth';
 import { dashboardOverviewHandler } from './dashboard';
+import {
+  listUsersHandler,
+  getUserDetailsHandler,
+  updateUserRoleHandler,
+  updateUserBlockHandler,
+} from './users';
 
 /**
  * Admin routes
@@ -17,4 +23,10 @@ export async function adminRoutes(app: FastifyInstance) {
 
   // Dashboard routes
   app.get('/dashboard/overview', dashboardOverviewHandler);
+
+  // User management routes
+  app.get('/users', listUsersHandler);
+  app.get('/users/:userId', getUserDetailsHandler);
+  app.patch('/users/:userId/role', updateUserRoleHandler);
+  app.patch('/users/:userId/block', updateUserBlockHandler);
 }
