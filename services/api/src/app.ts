@@ -6,6 +6,7 @@ import { jwtPlugin } from './plugins/jwt';
 import { authRoutes } from './routes/auth';
 import { chatRoutes } from './routes/chat';
 import { projectRoutes } from './routes/projects';
+import { adminRoutes } from './routes/admin';
 
 export async function buildApp() {
   const app = Fastify({
@@ -48,6 +49,7 @@ export async function buildApp() {
   await app.register(authRoutes, { prefix: '/api/auth' });
   await app.register(chatRoutes, { prefix: '/api/chat' });
   await app.register(projectRoutes, { prefix: '/api' });
+  await app.register(adminRoutes, { prefix: '/api/admin' });
 
   // Global error handler
   app.setErrorHandler((error, request, reply) => {
@@ -83,11 +85,6 @@ export async function buildApp() {
         message: 'An unexpected error occurred',
       },
     });
-  });
-
-  // Health check
-  app.get('/health', async () => {
-    return { status: 'healthy', timestamp: new Date().toISOString() };
   });
 
   return app;
