@@ -9,6 +9,7 @@
     "db:studio": "drizzle-kit studio",
     "migrate": "tsx scripts/migrate.ts",
     "migrate:single": "tsx scripts/run-migration.ts",
+    "seed:pricing": "tsx scripts/seed-model-pricing.ts",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

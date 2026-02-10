@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import postgres from 'postgres';
 import { db } from '../src';
 import { modelPricing } from '../src/schema/model-pricing';
 
@@ -55,6 +56,10 @@ async function seedModelPricing() {
   console.log('Seeding model pricing data...');
   console.log('---');
 
+  // Get the postgres client for cleanup
+  const connectionString = process.env.DATABASE_URL!;
+  const client = postgres(connectionString, { max: 1 });
+
   try {
     for (const model of modelPricingData) {
       console.log(`Inserting pricing for: ${model.modelId}`);
@@ -77,10 +82,18 @@ async function seedModelPricing() {
 
     console.log('---');
     console.log(`✅ Successfully seeded ${modelPricingData.length} model pricing records`);
+
+    // Cleanup database connection
+    await client.end();
     process.exit(0);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error seeding model pricing:', error);
-    console.error('Error details:', error.message);
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+    }
+
+    // Cleanup database connection on error
+    await client.end();
     process.exit(1);
   }
 }
