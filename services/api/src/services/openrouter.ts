@@ -72,11 +72,17 @@ export async function formatMessageWithAttachments(
   return contentParts;
 }
 
+interface TokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
 export async function streamChatCompletion(
   model: string,
   messages: Message[],
   onChunk: (chunk: string) => void,
-  onDone: (tokensUsed: number) => void
+  onDone: (tokenUsage: TokenUsage) => void
 ) {
   console.log('[OpenRouter] Sending request:', { model, messageCount: messages.length });
 
@@ -110,7 +116,11 @@ export async function streamChatCompletion(
   }
 
   let buffer = '';
-  let totalTokens = 0;
+  let tokenUsage: TokenUsage = {
+    promptTokens: 0,
+    completionTokens: 0,
+    totalTokens: 0,
+  };
 
   while (true) {
     const { done, value } = await reader.read();
@@ -126,7 +136,7 @@ export async function streamChatCompletion(
         const data = line.slice(6);
 
         if (data === '[DONE]') {
-          onDone(totalTokens);
+          onDone(tokenUsage);
           return;
         }
 
@@ -138,8 +148,13 @@ export async function streamChatCompletion(
             onChunk(content);
           }
 
-          if (parsed.usage?.total_tokens) {
-            totalTokens = parsed.usage.total_tokens;
+          // Capture token usage breakdown from OpenRouter API
+          if (parsed.usage) {
+            tokenUsage = {
+              promptTokens: parsed.usage.prompt_tokens || 0,
+              completionTokens: parsed.usage.completion_tokens || 0,
+              totalTokens: parsed.usage.total_tokens || 0,
+            };
           }
 
           // Check for errors in response
@@ -157,5 +172,5 @@ export async function streamChatCompletion(
     }
   }
 
-  onDone(totalTokens);
+  onDone(tokenUsage);
 }

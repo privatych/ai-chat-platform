@@ -214,25 +214,26 @@ export async function sendMessageHandler(
         console.log(`[Message Handler] Sending chunk ${chunkCount}:`, data);
         reply.raw.write(`data: ${data}\n\n`);
       },
-      async (tokensUsed) => {
-        console.log(`[Message Handler] Stream complete, total chunks: ${chunkCount}, tokens: ${tokensUsed}`);
+      async (tokenUsage) => {
+        console.log(`[Message Handler] Stream complete, total chunks: ${chunkCount}, tokens:`, tokenUsage);
 
-        // Save assistant message
+        // Save assistant message with total tokens
         await db.insert(messages).values({
           chatId,
           role: 'assistant',
           content: assistantMessage,
-          tokensUsed,
+          tokensUsed: tokenUsage.totalTokens,
         });
 
-        // Log usage for analytics
+        // Log usage for analytics with actual token breakdown
         try {
           await logUsage({
             userId,
             eventType: 'chat_message',
             model: currentModel,
-            tokensInput: Math.floor(tokensUsed * 0.4),  // Estimate input tokens as 40%
-            tokensOutput: Math.floor(tokensUsed * 0.6),  // Estimate output tokens as 60%
+            // Use actual token counts from API, fallback to estimates if not available
+            tokensInput: tokenUsage.promptTokens || Math.floor(tokenUsage.totalTokens * 0.4),
+            tokensOutput: tokenUsage.completionTokens || Math.floor(tokenUsage.totalTokens * 0.6),
             metadata: { chatId, messageLength: assistantMessage.length }
           });
           console.log(`[Message Handler] Usage logged successfully for chat ${chatId}`);
@@ -241,7 +242,7 @@ export async function sendMessageHandler(
           console.error('[Message Handler] Failed to log usage:', logError);
         }
 
-        reply.raw.write(`data: ${JSON.stringify({ done: true, tokensUsed })}\n\n`);
+        reply.raw.write(`data: ${JSON.stringify({ done: true, tokensUsed: tokenUsage.totalTokens })}\n\n`);
         reply.raw.end();
       }
     );
