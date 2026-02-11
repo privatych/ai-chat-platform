@@ -1,11 +1,15 @@
 import 'dotenv/config';
 import { buildApp } from './app';
 import { validateEnv } from './config/env';
+import { initializePricing } from './services/pricing';
 
 const start = async () => {
   try {
     // Validate environment variables before starting
     validateEnv();
+
+    // Initialize pricing service
+    await initializePricing();
 
     const app = await buildApp();
 

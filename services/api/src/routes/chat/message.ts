@@ -1,8 +1,9 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { db, chats, messages, projects, contextSections } from '@ai-chat/database';
+import { db, chats, messages, projects, contextSections, usageLogs } from '@ai-chat/database';
 import { eq } from 'drizzle-orm';
 import { streamChatCompletion, formatMessageWithAttachments } from '../../services/openrouter';
+import { calculateCost } from '../../services/pricing';
 
 // File validation constants
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -213,18 +214,34 @@ export async function sendMessageHandler(
         console.log(`[Message Handler] Sending chunk ${chunkCount}:`, data);
         reply.raw.write(`data: ${data}\n\n`);
       },
-      async (tokensUsed) => {
-        console.log(`[Message Handler] Stream complete, total chunks: ${chunkCount}, tokens: ${tokensUsed}`);
+      async (usage) => {
+        console.log(`[Message Handler] Stream complete, total chunks: ${chunkCount}, tokens:`, usage);
+
+        // Calculate cost
+        const costUsd = await calculateCost(currentModel, usage.promptTokens, usage.completionTokens);
 
         // Save assistant message
         await db.insert(messages).values({
           chatId,
           role: 'assistant',
           content: assistantMessage,
-          tokensUsed,
+          tokensUsed: usage.totalTokens,
         });
 
-        reply.raw.write(`data: ${JSON.stringify({ done: true, tokensUsed })}\n\n`);
+        // Log usage for analytics
+        await db.insert(usageLogs).values({
+          userId,
+          chatId,
+          model: currentModel,
+          promptTokens: usage.promptTokens,
+          completionTokens: usage.completionTokens,
+          totalTokens: usage.totalTokens,
+          costUsd: costUsd || 0,
+        });
+
+        console.log(`[Message Handler] Logged usage: ${usage.totalTokens} tokens, $${costUsd?.toFixed(6) || 0}`);
+
+        reply.raw.write(`data: ${JSON.stringify({ done: true, tokensUsed: usage.totalTokens })}\n\n`);
         reply.raw.end();
       }
     );
