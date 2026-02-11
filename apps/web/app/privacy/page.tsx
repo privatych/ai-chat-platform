@@ -17,7 +17,16 @@ export default function PrivacyPage() {
 
         <div className="prose dark:prose-invert max-w-none space-y-6">
           <section>
-            <h2 className="text-2xl font-semibold mb-4">1. Введение</h2>
+            <h2 className="text-2xl font-semibold mb-4">1. Оператор персональных данных</h2>
+            <div className="bg-secondary/20 p-6 rounded-lg mb-6">
+              <p className="font-semibold mb-2">Оператором персональных данных является:</p>
+              <p className="text-muted-foreground">Индивидуальный предприниматель Правкин Антон Николаевич</p>
+              <p className="text-muted-foreground">ИНН: 690708121454</p>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">2. Введение</h2>
             <p className="text-muted-foreground">
               AI Chat Platform серьезно относится к защите вашей конфиденциальности. Настоящая политика
               описывает, какую информацию мы собираем, как мы ее используем и защищаем.
@@ -25,7 +34,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">2. Собираемая информация</h2>
+            <h2 className="text-2xl font-semibold mb-4">3. Собираемая информация</h2>
             <p className="text-muted-foreground mb-2">
               Мы собираем следующие типы информации:
             </p>
@@ -38,7 +47,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">3. Использование информации</h2>
+            <h2 className="text-2xl font-semibold mb-4">4. Использование информации</h2>
             <p className="text-muted-foreground mb-2">
               Собранная информация используется для:
             </p>
@@ -53,7 +62,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">4. Хранение данных</h2>
+            <h2 className="text-2xl font-semibold mb-4">5. Хранение данных</h2>
             <p className="text-muted-foreground">
               Ваши данные хранятся на защищенных серверах с применением современных методов шифрования.
               История чатов хранится столько времени, сколько необходимо для предоставления сервиса,
@@ -62,7 +71,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">5. Передача данных третьим лицам</h2>
+            <h2 className="text-2xl font-semibold mb-4">6. Передача данных третьим лицам</h2>
             <p className="text-muted-foreground mb-2">
               Мы не продаем ваши личные данные. Данные могут быть переданы третьим лицам только в следующих случаях:
             </p>
@@ -75,7 +84,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">6. Ваши права</h2>
+            <h2 className="text-2xl font-semibold mb-4">7. Ваши права</h2>
             <p className="text-muted-foreground mb-2">
               Вы имеете право:
             </p>
@@ -90,7 +99,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">7. Cookies и технологии отслеживания</h2>
+            <h2 className="text-2xl font-semibold mb-4">8. Cookies и технологии отслеживания</h2>
             <p className="text-muted-foreground">
               Мы используем cookies для улучшения работы сайта, сохранения ваших предпочтений и аналитики.
               Вы можете настроить использование cookies в настройках браузера.
@@ -98,7 +107,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">8. Безопасность детей</h2>
+            <h2 className="text-2xl font-semibold mb-4">9. Безопасность детей</h2>
             <p className="text-muted-foreground">
               Наш сервис не предназначен для лиц младше 18 лет. Мы намеренно не собираем информацию
               от детей. Если вы узнали, что ребенок предоставил нам личную информацию, свяжитесь с нами.
@@ -106,7 +115,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">9. Изменения политики</h2>
+            <h2 className="text-2xl font-semibold mb-4">10. Изменения политики</h2>
             <p className="text-muted-foreground">
               Мы можем обновлять настоящую политику конфиденциальности. О существенных изменениях мы
               уведомим вас по электронной почте или через уведомления на платформе.
@@ -114,7 +123,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">10. Контакты</h2>
+            <h2 className="text-2xl font-semibold mb-4">11. Контакты</h2>
             <p className="text-muted-foreground">
               По вопросам конфиденциальности обращайтесь на страницу{' '}
               <Link href="/support" className="text-primary hover:underline">

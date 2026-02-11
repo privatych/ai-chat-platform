@@ -17,7 +17,16 @@ export default function TermsPage() {
 
         <div className="prose dark:prose-invert max-w-none space-y-6">
           <section>
-            <h2 className="text-2xl font-semibold mb-4">1. Принятие условий</h2>
+            <h2 className="text-2xl font-semibold mb-4">1. Информация о владельце</h2>
+            <div className="bg-secondary/20 p-6 rounded-lg mb-6">
+              <p className="font-semibold mb-2">Индивидуальный предприниматель:</p>
+              <p className="text-muted-foreground">Правкин Антон Николаевич</p>
+              <p className="text-muted-foreground">ИНН: 690708121454</p>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">2. Принятие условий</h2>
             <p className="text-muted-foreground">
               Используя AI Chat Platform, вы соглашаетесь с настоящими условиями использования.
               Если вы не согласны с какими-либо условиями, пожалуйста, не используйте нашу платформу.
@@ -25,7 +34,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">2. Использование сервиса</h2>
+            <h2 className="text-2xl font-semibold mb-4">3. Использование сервиса</h2>
             <p className="text-muted-foreground mb-2">
               AI Chat Platform предоставляет доступ к различным AI моделям для обработки текстовых запросов.
             </p>
@@ -38,7 +47,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">3. Тарифные планы</h2>
+            <h2 className="text-2xl font-semibold mb-4">4. Тарифные планы</h2>
             <p className="text-muted-foreground mb-2">
               Мы предлагаем бесплатный и премиум тарифные планы:
             </p>
@@ -52,7 +61,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">4. Интеллектуальная собственность</h2>
+            <h2 className="text-2xl font-semibold mb-4">5. Интеллектуальная собственность</h2>
             <p className="text-muted-foreground">
               Весь контент, генерируемый AI моделями, предоставляется "как есть". Вы сохраняете права
               на свои запросы и полученные ответы, но мы оставляем за собой право использовать
@@ -61,7 +70,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">5. Ограничение ответственности</h2>
+            <h2 className="text-2xl font-semibold mb-4">6. Ограничение ответственности</h2>
             <p className="text-muted-foreground">
               AI Chat Platform предоставляется "как есть", без каких-либо гарантий. Мы не несем
               ответственности за:
@@ -74,7 +83,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">6. Изменение условий</h2>
+            <h2 className="text-2xl font-semibold mb-4">7. Изменение условий</h2>
             <p className="text-muted-foreground">
               Мы оставляем за собой право изменять настоящие условия в любое время. Существенные
               изменения будут доведены до вашего сведения по электронной почте или через уведомления
@@ -83,7 +92,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">7. Контакты</h2>
+            <h2 className="text-2xl font-semibold mb-4">8. Контакты</h2>
             <p className="text-muted-foreground">
               По вопросам, связанным с условиями использования, обращайтесь на страницу{' '}
               <Link href="/support" className="text-primary hover:underline">

@@ -1,32 +1,6 @@
-/**
- * TODO: Email Service Integration
- *
- * Current State: Support form only logs to console (line 42)
- *
- * Implementation Steps:
- * 1. Choose email service provider:
- *    - SendGrid (https://sendgrid.com)
- *    - AWS SES (https://aws.amazon.com/ses/)
- *    - Resend (https://resend.com)
- *
- * 2. Create API endpoint:
- *    - File: services/api/src/routes/support/contact.ts
- *    - Validate form data
- *    - Send email via chosen provider
- *    - Add rate limiting (max 5 requests per hour per user)
- *
- * 3. Add spam protection:
- *    - Integrate Google reCAPTCHA v3
- *    - Or use Cloudflare Turnstile
- *
- * 4. Update this file:
- *    - Replace console.log with apiClient.sendSupportMessage()
- *    - Add proper error handling
- */
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Mail, MessageSquare, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Mail, MessageSquare, HelpCircle, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const supportSchema = z.object({
@@ -44,12 +18,42 @@ const supportSchema = z.object({
   email: z.string().email('Некорректный email адрес'),
   subject: z.string().min(5, 'Тема должна содержать минимум 5 символов'),
   message: z.string().min(20, 'Сообщение должно содержать минимум 20 символов'),
+  captcha: z.string().min(1, 'Пожалуйста, решите задачу'),
 });
 
 type SupportForm = z.infer<typeof supportSchema>;
 
+// Simple math captcha generator
+function generateCaptcha() {
+  const num1 = Math.floor(Math.random() * 10) + 1;
+  const num2 = Math.floor(Math.random() * 10) + 1;
+  const operators = ['+', '-', '*'];
+  const operator = operators[Math.floor(Math.random() * operators.length)];
+
+  let answer;
+  switch (operator) {
+    case '+':
+      answer = num1 + num2;
+      break;
+    case '-':
+      answer = num1 - num2;
+      break;
+    case '*':
+      answer = num1 * num2;
+      break;
+    default:
+      answer = num1 + num2;
+  }
+
+  return {
+    question: `${num1} ${operator} ${num2} = ?`,
+    answer: answer.toString(),
+  };
+}
+
 export default function SupportPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [captcha, setCaptcha] = useState({ question: '', answer: '' });
 
   const {
     register,
@@ -60,7 +64,23 @@ export default function SupportPage() {
     resolver: zodResolver(supportSchema),
   });
 
+  // Generate captcha on mount
+  useEffect(() => {
+    setCaptcha(generateCaptcha());
+  }, []);
+
+  const refreshCaptcha = () => {
+    setCaptcha(generateCaptcha());
+  };
+
   const onSubmit = async (data: SupportForm) => {
+    // Verify captcha
+    if (data.captcha !== captcha.answer) {
+      toast.error('Неверный ответ на математическую задачу');
+      refreshCaptcha();
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -72,6 +92,7 @@ export default function SupportPage() {
 
       toast.success('Сообщение отправлено! Мы свяжемся с вами в ближайшее время.');
       reset();
+      refreshCaptcha();
     } catch (error) {
       toast.error('Ошибка при отправке сообщения. Попробуйте позже.');
     } finally {
@@ -96,18 +117,34 @@ export default function SupportPage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
+        <div className="grid md:grid-cols-4 gap-6 mb-12">
+          <Card>
+            <CardHeader>
+              <Building2 className="h-8 w-8 mb-2 text-primary" />
+              <CardTitle>Реквизиты</CardTitle>
+              <CardDescription>
+                Информация о владельце
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm font-semibold mb-2">ИП Правкин Антон Николаевич</p>
+              <p className="text-xs text-muted-foreground">
+                ИНН: 690708121454
+              </p>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <Mail className="h-8 w-8 mb-2 text-primary" />
               <CardTitle>Email</CardTitle>
               <CardDescription>
-                Свяжитесь с нами по электронной почте
+                Свяжитесь с нами по почте
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                support@aichatplatform.com
+                support@ai.itoq.ru
               </p>
               <p className="text-xs text-muted-foreground mt-2">
                 Ответим в течение 24 часов
@@ -127,9 +164,6 @@ export default function SupportPage() {
               <p className="text-sm text-muted-foreground">
                 Подробная документация по использованию платформы
               </p>
-              <Button variant="link" className="mt-2 p-0 h-auto">
-                Перейти к документации →
-              </Button>
             </CardContent>
           </Card>
 
@@ -143,11 +177,8 @@ export default function SupportPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Найдите ответы на распространенные вопросы
+                Найдите ответы на распространенные вопросы ниже
               </p>
-              <Button variant="link" className="mt-2 p-0 h-auto">
-                Смотреть FAQ →
-              </Button>
             </CardContent>
           </Card>
         </div>
@@ -213,6 +244,35 @@ export default function SupportPage() {
                 )}
               </div>
 
+              {/* Simple Math Captcha */}
+              <div className="space-y-2">
+                <Label htmlFor="captcha">Проверка безопасности *</Label>
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <div className="bg-secondary/20 p-4 rounded-lg mb-2">
+                      <p className="text-lg font-mono text-center">{captcha.question}</p>
+                    </div>
+                    <Input
+                      id="captcha"
+                      type="text"
+                      placeholder="Введите ответ"
+                      {...register('captcha')}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={refreshCaptcha}
+                    className="mb-0"
+                  >
+                    Обновить
+                  </Button>
+                </div>
+                {errors.captcha && (
+                  <p className="text-sm text-destructive">{errors.captcha.message}</p>
+                )}
+              </div>
+
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? 'Отправка...' : 'Отправить сообщение'}
               </Button>
@@ -248,8 +308,9 @@ export default function SupportPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Бесплатным пользователям доступны GPT-3.5 Turbo и Claude Haiku. Premium пользователи
-                  получают доступ к GPT-4, Claude Opus, Gemini Pro и другим продвинутым моделям.
+                  Бесплатным пользователям доступны GPT-3.5 Turbo, Gemini 2.0 Flash и Llama 3.1 8B.
+                  Premium пользователи получают доступ к GPT-4 Omni, Claude 3.5 Sonnet, Gemini 2.5 Pro
+                  и Llama 3.3 70B.
                 </p>
               </CardContent>
             </Card>
