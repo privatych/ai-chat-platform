@@ -7,6 +7,9 @@ export * from './schema/messages';
 export * from './schema/subscriptions';
 export * from './schema/projects';
 export * from './schema/context-sections';
+export * from './schema/usage-logs';
+export * from './schema/model-pricing';
+export * from './schema/admin-actions';
 
 // Database connection
 const connectionString = process.env.DATABASE_URL!;

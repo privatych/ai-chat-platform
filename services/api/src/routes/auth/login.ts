@@ -45,6 +45,7 @@ export async function loginHandler(
       userId: user.id,
       email: user.email,
       subscriptionTier: user.subscriptionTier,
+      role: user.role,
     });
 
     return reply.send({
@@ -57,6 +58,7 @@ export async function loginHandler(
           fullName: user.fullName,
           subscriptionTier: user.subscriptionTier,
           subscriptionExpiresAt: user.subscriptionExpiresAt,
+          role: user.role,
         },
       },
     });

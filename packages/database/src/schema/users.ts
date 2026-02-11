@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, boolean, text, index } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -8,9 +8,16 @@ export const users = pgTable('users', {
   avatarUrl: varchar('avatar_url', { length: 500 }),
   subscriptionTier: varchar('subscription_tier', { length: 50 }).notNull().default('free'),
   subscriptionExpiresAt: timestamp('subscription_expires_at'),
+  role: varchar('role', { length: 20 }).notNull().default('user'), // 'admin', 'premiumuser', 'user'
+  isBlocked: boolean('is_blocked').default(false),
+  blockedReason: text('blocked_reason'),
+  blockedAt: timestamp('blocked_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  roleIdx: index('idx_users_role').on(table.role),
+  blockedIdx: index('idx_users_blocked').on(table.isBlocked),
+}));
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;

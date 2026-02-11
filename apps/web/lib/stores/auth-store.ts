@@ -7,6 +7,7 @@ interface User {
   fullName?: string;
   subscriptionTier: 'free' | 'premium';
   subscriptionExpiresAt?: string | null;
+  role?: 'admin' | 'premiumuser' | 'user';
 }
 
 interface AuthState {

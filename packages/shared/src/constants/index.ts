@@ -20,7 +20,7 @@ export const AI_MODELS = {
     { id: 'meta-llama/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', provider: 'Meta', supportsVision: false, supportsFiles: false },
   ],
   premium: [
-    { id: 'openai/gpt-4-turbo', name: 'GPT-4 Turbo', provider: 'OpenAI', supportsVision: true, supportsFiles: false },
+    { id: 'openai/gpt-4o', name: 'GPT-4 Omni', provider: 'OpenAI', supportsVision: true, supportsFiles: false },
     { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'Anthropic', supportsVision: true, supportsFiles: true },
     { id: 'google/gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'Google', supportsVision: true, supportsFiles: true },
     { id: 'meta-llama/llama-3.3-70b-instruct', name: 'Llama 3.3 70B', provider: 'Meta', supportsVision: false, supportsFiles: false },

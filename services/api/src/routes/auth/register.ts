@@ -50,6 +50,7 @@ export async function registerHandler(
       userId: newUser.id,
       email: newUser.email,
       subscriptionTier: newUser.subscriptionTier,
+      role: newUser.role,
     });
 
     return reply.send({
@@ -62,6 +63,7 @@ export async function registerHandler(
           fullName: newUser.fullName,
           subscriptionTier: newUser.subscriptionTier,
           subscriptionExpiresAt: newUser.subscriptionExpiresAt,
+          role: newUser.role,
         },
       },
     });
