@@ -455,9 +455,9 @@ export default function Home() {
               </p>
             </div>
             <div className="flex gap-6 text-sm text-muted-foreground">
-              <Link href="#" className="hover:text-foreground transition-colors">Условия использования</Link>
-              <Link href="#" className="hover:text-foreground transition-colors">Конфиденциальность</Link>
-              <Link href="#" className="hover:text-foreground transition-colors">Поддержка</Link>
+              <Link href="/terms" className="hover:text-foreground transition-colors">Условия использования</Link>
+              <Link href="/privacy" className="hover:text-foreground transition-colors">Конфиденциальность</Link>
+              <Link href="/support" className="hover:text-foreground transition-colors">Поддержка</Link>
             </div>
           </div>
         </div>
