@@ -1,16 +1,24 @@
 import nodemailer from 'nodemailer';
+import type { Transporter } from 'nodemailer';
 import { getEnv } from '../config/env';
 
-// Create reusable transporter
-const transporter = nodemailer.createTransport({
-  host: getEnv('SMTP_HOST', 'smtp.gmail.com'),
-  port: parseInt(getEnv('SMTP_PORT', '587')),
-  secure: getEnv('SMTP_SECURE', 'false') === 'true', // true for 465, false for other ports
-  auth: {
-    user: getEnv('SMTP_USER'),
-    pass: getEnv('SMTP_PASS'),
-  },
-});
+// Lazy initialization of transporter - only created when needed
+let transporter: Transporter | null = null;
+
+function getTransporter(): Transporter {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host: getEnv('SMTP_HOST', 'smtp.gmail.com'),
+      port: parseInt(getEnv('SMTP_PORT', '587')),
+      secure: getEnv('SMTP_SECURE', 'false') === 'true', // true for 465, false for other ports
+      auth: {
+        user: getEnv('SMTP_USER'),
+        pass: getEnv('SMTP_PASS'),
+      },
+    });
+  }
+  return transporter;
+}
 
 interface SendVerificationEmailParams {
   email: string;
@@ -130,7 +138,7 @@ ${verificationLink}
 ИП Иванов Иван Иванович, ИНН: 1234567890
   `;
 
-  await transporter.sendMail({
+  await getTransporter().sendMail({
     from: `"AI Chat Platform" <${getEnv('SMTP_FROM', getEnv('SMTP_USER'))}>`,
     to: email,
     subject: 'Подтвердите ваш email - AI Chat Platform',
