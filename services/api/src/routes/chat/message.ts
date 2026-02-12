@@ -231,12 +231,13 @@ export async function sendMessageHandler(
         // Log usage for analytics
         await db.insert(usageLogs).values({
           userId,
-          chatId,
+          eventType: 'chat_message',
           model: currentModel,
-          promptTokens: usage.promptTokens,
-          completionTokens: usage.completionTokens,
-          totalTokens: usage.totalTokens,
-          costUsd: costUsd || 0,
+          tokensInput: usage.promptTokens,
+          tokensOutput: usage.completionTokens,
+          tokensTotal: usage.totalTokens,
+          costUsd: (costUsd || 0).toString(),
+          metadata: { chatId },
         });
 
         console.log(`[Message Handler] Logged usage: ${usage.totalTokens} tokens, $${costUsd?.toFixed(6) || 0}`);

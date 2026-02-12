@@ -22,6 +22,16 @@ interface PricingCache {
   [modelId: string]: ModelPricing;
 }
 
+interface OpenRouterModel {
+  id: string;
+  pricing?: ModelPricing;
+  [key: string]: any;
+}
+
+interface OpenRouterResponse {
+  data: OpenRouterModel[];
+}
+
 let pricingCache: PricingCache | null = null;
 let lastFetched: number = 0;
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
@@ -41,7 +51,7 @@ async function fetchPricing(): Promise<PricingCache> {
       throw new Error(`Failed to fetch pricing: ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as OpenRouterResponse;
     const pricing: PricingCache = {};
 
     for (const model of data.data) {
