@@ -26,15 +26,22 @@ export default function VerifyEmailPage() {
 
     async function verifyEmail() {
       try {
-        const response = await apiClient.post('/auth/verify-email', { token });
+        const response = await apiClient.request<{
+          message: string;
+          token?: string;
+          user?: any;
+        }>('/api/auth/verify-email', {
+          method: 'POST',
+          body: JSON.stringify({ token }),
+        });
 
-        if (response.data.success) {
+        if (response.success && response.data) {
           setStatus('success');
-          setMessage(response.data.data.message);
+          setMessage(response.data.message);
 
           // If token was returned, log the user in
-          if (response.data.data.token) {
-            setAuth(response.data.data.token, response.data.data.user);
+          if (response.data.token && response.data.user) {
+            setAuth(response.data.token, response.data.user);
 
             // Redirect to chat after 2 seconds
             setTimeout(() => {
@@ -43,12 +50,11 @@ export default function VerifyEmailPage() {
           }
         } else {
           setStatus('error');
-          setMessage(response.data.error?.message || 'Ошибка при подтверждении email');
+          setMessage(response.error?.message || 'Ошибка при подтверждении email');
         }
       } catch (error: any) {
         setStatus('error');
         setMessage(
-          error.response?.data?.error?.message ||
           'Не удалось подтвердить email. Попробуйте снова.'
         );
       }
