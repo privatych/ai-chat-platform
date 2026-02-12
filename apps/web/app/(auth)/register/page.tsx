@@ -58,8 +58,8 @@ export default function RegisterPage() {
       if (response.success && response.data) {
         // Check if email verification is required
         if (response.data.requiresVerification) {
-          setSuccessMessage(response.data.message);
-        } else {
+          setSuccessMessage(response.data.message || 'Регистрация успешна! Проверьте почту.');
+        } else if (response.data.token && response.data.user) {
           // Old flow: direct login with token
           setAuth(response.data.token, response.data.user);
           router.push('/chat');
