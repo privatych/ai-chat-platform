@@ -13,7 +13,7 @@ export default function VerifyEmailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
-  const { setAuthData } = useAuthStore();
+  const { setAuth } = useAuthStore();
 
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'no-token'>('loading');
   const [message, setMessage] = useState('');
@@ -34,7 +34,7 @@ export default function VerifyEmailPage() {
 
           // If token was returned, log the user in
           if (response.data.data.token) {
-            setAuthData(response.data.data.token, response.data.data.user);
+            setAuth(response.data.data.token, response.data.data.user);
 
             // Redirect to chat after 2 seconds
             setTimeout(() => {
@@ -55,7 +55,7 @@ export default function VerifyEmailPage() {
     }
 
     verifyEmail();
-  }, [token, setAuthData, router]);
+  }, [token, setAuth, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
