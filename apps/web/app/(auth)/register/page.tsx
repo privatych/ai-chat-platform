@@ -26,6 +26,7 @@ export default function RegisterPage() {
   const { setAuth, isAuthenticated, hasHydrated } = useAuthStore();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -45,6 +46,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
     setError('');
+    setSuccessMessage('');
 
     try {
       const response = await apiClient.register(
@@ -54,8 +56,14 @@ export default function RegisterPage() {
       );
 
       if (response.success && response.data) {
-        setAuth(response.data.token, response.data.user);
-        router.push('/chat');
+        // Check if email verification is required
+        if (response.data.requiresVerification) {
+          setSuccessMessage(response.data.message);
+        } else {
+          // Old flow: direct login with token
+          setAuth(response.data.token, response.data.user);
+          router.push('/chat');
+        }
       } else {
         setError(response.error?.message || 'Registration failed');
       }
@@ -95,6 +103,14 @@ export default function RegisterPage() {
             {error && (
               <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
                 {error}
+              </div>
+            )}
+            {successMessage && (
+              <div className="rounded-md bg-green-500/15 p-3 text-sm text-green-600 dark:text-green-400">
+                <p className="font-semibold mb-1">✅ {successMessage}</p>
+                <p className="text-xs mt-2">
+                  Не получили письмо? Проверьте папку "Спам".
+                </p>
               </div>
             )}
             <div className="space-y-2">

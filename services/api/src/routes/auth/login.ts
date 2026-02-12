@@ -40,6 +40,17 @@ export async function loginHandler(
       });
     }
 
+    // Check if email is verified
+    if (!user.emailVerified) {
+      return reply.code(403).send({
+        success: false,
+        error: {
+          code: 'EMAIL_NOT_VERIFIED',
+          message: 'Пожалуйста, подтвердите ваш email. Проверьте почту.',
+        },
+      });
+    }
+
     // Generate JWT
     const token = request.server.jwt.sign({
       userId: user.id,

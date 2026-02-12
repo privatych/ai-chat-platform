@@ -12,11 +12,15 @@ export const users = pgTable('users', {
   isBlocked: boolean('is_blocked').default(false),
   blockedReason: text('blocked_reason'),
   blockedAt: timestamp('blocked_at'),
+  emailVerified: boolean('email_verified').notNull().default(false),
+  verificationToken: varchar('verification_token', { length: 255 }),
+  verificationExpires: timestamp('verification_expires'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
   roleIdx: index('idx_users_role').on(table.role),
   blockedIdx: index('idx_users_blocked').on(table.isBlocked),
+  verificationTokenIdx: index('idx_users_verification_token').on(table.verificationToken),
 }));
 
 export type User = typeof users.$inferSelect;

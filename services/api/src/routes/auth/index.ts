@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { registerHandler } from './register';
 import { loginHandler } from './login';
+import { verifyEmailHandler } from './verify-email';
 import { meHandler } from './me';
 import { usageStatsHandler } from './usage';
 import { authenticate } from '../../plugins/jwt';
@@ -18,6 +19,7 @@ export async function authRoutes(app: FastifyInstance) {
 
   app.post('/register', authRateLimit, registerHandler);
   app.post('/login', authRateLimit, loginHandler);
+  app.post('/verify-email', verifyEmailHandler);
   app.get('/me', { preHandler: authenticate }, meHandler);
   app.get('/usage', { preHandler: authenticate }, usageStatsHandler);
 }

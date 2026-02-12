@@ -57,7 +57,7 @@ export default function Home() {
           <div className="text-center space-y-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border bg-background/50 backdrop-blur text-sm font-medium">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span>Powered by OpenRouter</span>
+              <span>Powered by ITOQ</span>
             </div>
 
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
