@@ -1,6 +1,7 @@
 export * from './users';
 export * from './chats';
 export * from './messages';
+export * from './message-usage';
 export * from './subscriptions';
 export * from './projects';
 export * from './context-sections';
