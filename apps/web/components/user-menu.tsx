@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,7 @@ import {
   Calendar,
   MessageSquare,
   Zap,
+  CreditCard,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { apiClient } from '@/lib/api-client';
@@ -178,6 +180,13 @@ export function UserMenu({ onLogout }: UserMenuProps) {
         </div>
 
         <DropdownMenuSeparator />
+
+        <DropdownMenuItem asChild>
+          <Link href="/subscription">
+            <CreditCard className="mr-2 h-4 w-4" />
+            <span>Подписка</span>
+          </Link>
+        </DropdownMenuItem>
 
         <DropdownMenuItem onClick={handleSettings}>
           <Settings className="mr-2 h-4 w-4" />
