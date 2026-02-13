@@ -1,4 +1,9 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Explicitly load .env from api directory
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
+
 import { buildApp } from './app';
 import { validateEnv } from './config/env';
 import { initializePricing } from './services/pricing';
