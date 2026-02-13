@@ -3,11 +3,6 @@ import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import { db, users } from '@ai-chat/database';
 import { eq } from 'drizzle-orm';
-import {
-  sendVerificationEmail,
-  generateVerificationToken,
-  getVerificationExpires
-} from '../../services/email';
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -39,11 +34,8 @@ export async function registerHandler(
     // Hash password
     const passwordHash = await bcrypt.hash(body.password, 10);
 
-    // Generate verification token
-    const verificationToken = generateVerificationToken();
-    const verificationExpires = getVerificationExpires();
-
-    // Create user with verification token
+    // TEMPORARY: Auto-verify users until SMTP is configured
+    // TODO: Re-enable email verification when SMTP ports are unblocked
     const [newUser] = await db
       .insert(users)
       .values({
@@ -51,32 +43,34 @@ export async function registerHandler(
         passwordHash,
         fullName: body.fullName,
         subscriptionTier: 'free',
-        emailVerified: false,
-        verificationToken,
-        verificationExpires,
+        emailVerified: true, // Auto-verify (SMTP blocked by hosting)
+        verificationToken: null,
+        verificationExpires: null,
       })
       .returning();
 
-    // Send verification email
-    try {
-      await sendVerificationEmail({
-        email: newUser.email,
-        fullName: newUser.fullName || '',
-        verificationToken,
-      });
+    console.log(`[Register] User auto-verified: ${newUser.email}`);
 
-      console.log(`[Register] Verification email sent to: ${newUser.email}`);
-    } catch (emailError) {
-      console.error('[Register] Failed to send verification email:', emailError);
-      // Don't fail registration if email fails - user can request resend
-    }
+    // Generate JWT token for immediate login
+    const token = request.server.jwt.sign({
+      userId: newUser.id,
+      email: newUser.email,
+      subscriptionTier: newUser.subscriptionTier,
+      role: newUser.role,
+    });
 
     return reply.send({
       success: true,
       data: {
-        message: 'Регистрация успешна! Проверьте вашу почту для подтверждения email.',
-        email: newUser.email,
-        requiresVerification: true,
+        token,
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          fullName: newUser.fullName,
+          subscriptionTier: newUser.subscriptionTier,
+          subscriptionExpiresAt: newUser.subscriptionExpiresAt,
+          role: newUser.role,
+        },
       },
     });
   } catch (error) {
