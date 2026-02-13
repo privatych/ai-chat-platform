@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { ModelSelector } from './ModelSelector';
+import { MessageLimitModal } from './MessageLimitModal';
 import { apiClient } from '@/lib/api-client';
 
 interface ChatInterfaceProps {
@@ -22,6 +23,7 @@ export function ChatInterface({
   const [messages, setMessages] = useState<any[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
 
   // Load messages when chatId changes
   useEffect(() => {
@@ -81,6 +83,11 @@ export function ChatInterface({
         selectedModel={selectedModel}
         onMessagesUpdate={setMessages}
         onStreamingChange={setIsStreaming}
+        onMessageLimitExceeded={() => setShowLimitModal(true)}
+      />
+      <MessageLimitModal
+        open={showLimitModal}
+        onClose={() => setShowLimitModal(false)}
       />
     </div>
   );

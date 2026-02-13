@@ -14,6 +14,7 @@ interface MessageInputProps {
   selectedModel: string;
   onMessagesUpdate: (updater: (prev: any[]) => any[]) => void;
   onStreamingChange: (streaming: boolean) => void;
+  onMessageLimitExceeded?: () => void;
 }
 
 export function MessageInput({
@@ -21,6 +22,7 @@ export function MessageInput({
   selectedModel,
   onMessagesUpdate,
   onStreamingChange,
+  onMessageLimitExceeded,
 }: MessageInputProps) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -105,15 +107,34 @@ export function MessageInput({
           setIsLoading(false);
         }
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('[MessageInput] Error streaming message:', error);
-      onMessagesUpdate((prev: any[]) => {
-        const filtered = prev.filter((m) => m.id !== assistantMessage.id);
-        return [...filtered, {
-          ...assistantMessage,
-          content: 'Ошибка при получении ответа. Попробуйте еще раз.',
-        }];
-      });
+
+      // Check if this is a message limit exceeded error
+      if (error.status === 429 || error.code === 'MESSAGE_LIMIT_EXCEEDED') {
+        // Remove the user message since it wasn't sent
+        onMessagesUpdate((prev: any[]) => {
+          return prev.filter((m) => m.id !== userMessage.id && m.id !== assistantMessage.id);
+        });
+
+        // Show the limit modal
+        if (onMessageLimitExceeded) {
+          onMessageLimitExceeded();
+        }
+
+        // Restore the input text so user doesn't lose it
+        setInput(userMessage.content);
+      } else {
+        // For other errors, show error message
+        onMessagesUpdate((prev: any[]) => {
+          const filtered = prev.filter((m) => m.id !== assistantMessage.id);
+          return [...filtered, {
+            ...assistantMessage,
+            content: 'Ошибка при получении ответа. Попробуйте еще раз.',
+          }];
+        });
+      }
+
       onStreamingChange(false);
       setIsLoading(false);
     }

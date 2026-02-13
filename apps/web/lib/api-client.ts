@@ -204,6 +204,14 @@ class ApiClient {
     console.log('[API Client] Response headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
+      // For 429 errors, parse the JSON response to get error details
+      if (response.status === 429) {
+        const errorData = await response.json();
+        const error: any = new Error(errorData.error?.message || 'Message limit exceeded');
+        error.code = errorData.error?.code || 'MESSAGE_LIMIT_EXCEEDED';
+        error.status = 429;
+        throw error;
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
