@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Explicitly load .env from api directory
-dotenv.config({ path: path.join(__dirname, '..', '.env') });
+// Explicitly load .env from api directory (using process.cwd() for tsx compatibility)
+dotenv.config({ path: path.join(process.cwd(), '.env') });
 
 import { buildApp } from './app';
 import { validateEnv } from './config/env';
