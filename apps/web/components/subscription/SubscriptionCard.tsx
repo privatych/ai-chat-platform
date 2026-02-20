@@ -24,7 +24,11 @@ export function SubscriptionCard({ status, onUpdate }: SubscriptionCardProps) {
   async function handleUpgrade() {
     setUpgrading(true);
     try {
-      const response = await apiClient.request('/api/subscription/create-payment', {
+      const response = await apiClient.request<{
+        confirmationUrl: string;
+        paymentId: string;
+        amount: number;
+      }>('/api/subscription/create-payment', {
         method: 'POST',
       });
 
