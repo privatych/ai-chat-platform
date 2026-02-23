@@ -182,6 +182,9 @@ importers:
       '@fastify/rate-limit':
         specifier: ^10.3.0
         version: 10.3.0
+      axios:
+        specifier: ^1.6.8
+        version: 1.13.5
       bcrypt:
         specifier: ^5.1.1
         version: 5.1.1

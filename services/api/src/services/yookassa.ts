@@ -1,21 +1,29 @@
 import { YooCheckout, ICreatePayment, Payment } from '@a2seven/yoo-checkout';
 import { HttpsProxyAgent } from 'https-proxy-agent';
-import axios from 'axios';
 import { getEnv } from '../config/env';
 
 // Configure proxy for YooKassa requests (Russian VPS)
 const proxyUrl = getEnv('YOOKASSA_PROXY_URL', '');
 
-// Create custom axios instance with proxy agent
-const axiosInstance = proxyUrl ? axios.create({
-  httpsAgent: new HttpsProxyAgent(proxyUrl),
-  proxy: false, // Disable default axios proxy to use httpsAgent
-}) : undefined;
+// Monkey-patch global https module to use proxy for YooKassa
+if (proxyUrl) {
+  const https = require('https');
+  const originalRequest = https.request;
+  const proxyAgent = new HttpsProxyAgent(proxyUrl);
+
+  https.request = function(options: any, ...args: any[]) {
+    // Only use proxy for YooKassa API
+    if (options?.hostname === 'api.yookassa.ru' || options?.host === 'api.yookassa.ru') {
+      options.agent = proxyAgent;
+    }
+    return originalRequest.call(this, options, ...args);
+  };
+}
 
 const yookassa = new YooCheckout({
   shopId: getEnv('YOOKASSA_SHOP_ID'),
   secretKey: getEnv('YOOKASSA_SECRET_KEY'),
-}, axiosInstance as any);
+});
 
 export interface CreateRecurrentPaymentParams {
   amount: number;
