@@ -58,7 +58,7 @@ export async function createRecurrentPayment({
         return_url: returnUrl,
       },
       description,
-      save_payment_method: true, // Enable auto-renewal
+      // save_payment_method: true, // TODO: Enable after YooKassa activates recurring payments
       metadata: {
         user_id: userId,
       },
