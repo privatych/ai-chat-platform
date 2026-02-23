@@ -1,9 +1,16 @@
 import { YooCheckout, ICreatePayment, Payment } from '@a2seven/yoo-checkout';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 import { getEnv } from '../config/env';
+
+// Configure proxy for YooKassa requests (Russian VPS)
+const proxyUrl = getEnv('YOOKASSA_PROXY_URL', '');
+const httpsAgent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : undefined;
 
 const yookassa = new YooCheckout({
   shopId: getEnv('YOOKASSA_SHOP_ID'),
   secretKey: getEnv('YOOKASSA_SECRET_KEY'),
+  // @ts-ignore - YooCheckout types don't include agent but axios accepts it
+  httpsAgent,
 });
 
 export interface CreateRecurrentPaymentParams {
