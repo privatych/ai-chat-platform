@@ -8,10 +8,11 @@ import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { ChatInterface } from '@/components/chat/ChatInterface';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { UserMenu } from '@/components/user-menu';
-import { Brain } from 'lucide-react';
+import { Brain, Sparkles } from 'lucide-react';
 import { AI_MODELS } from '@ai-chat/shared';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import type { Chat } from '@/types';
 
 export default function ChatPage() {
@@ -133,6 +134,12 @@ export default function ChatPage() {
           </Link>
 
           <div className="ml-auto flex items-center gap-3">
+            <Link href="/images">
+              <Button variant="ghost" size="sm">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Images
+              </Button>
+            </Link>
             <ThemeToggle />
             <UserMenu onLogout={handleLogout} />
           </div>

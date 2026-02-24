@@ -21,6 +21,14 @@ export default function Home() {
               <span className="text-xl font-bold">AI Chat Platform</span>
             </div>
             <div className="flex items-center gap-4">
+              {hasHydrated && isAuthenticated && (
+                <Link href="/images">
+                  <Button variant="ghost" size="sm">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Images
+                  </Button>
+                </Link>
+              )}
               <ThemeToggle />
               {hasHydrated ? (
                 isAuthenticated ? (
