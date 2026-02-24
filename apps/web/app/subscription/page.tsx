@@ -27,14 +27,15 @@ export default function SubscriptionPage() {
   async function loadStatus() {
     try {
       const response = await apiClient.request('/api/subscription/status');
-      if (response.success) {
+      if (response.success && response.data) {
         setStatus(response.data);
 
         // Update user data in store if tier changed
-        if (response.data.tier) {
+        const data = response.data as any;
+        if (data.tier) {
           updateUser({
-            subscriptionTier: response.data.tier,
-            subscriptionExpiresAt: response.data.currentPeriodEnd || null,
+            subscriptionTier: data.tier,
+            subscriptionExpiresAt: data.currentPeriodEnd || null,
           });
         }
       }
