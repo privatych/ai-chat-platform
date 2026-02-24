@@ -39,7 +39,10 @@ export function MessageLimitModal({ open, onClose }: MessageLimitModalProps) {
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
             <h4 className="font-semibold text-lg">Получите безлимитный доступ</h4>
             <p className="text-2xl font-bold text-primary">
-              Premium подписка - 1990₽/месяц
+              Premium подписка - 3990₽/месяц
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Оплата каждые 14 дней по 1995₽
             </p>
             <ul className="space-y-2">
               <li className="flex items-start gap-2">

@@ -80,7 +80,7 @@ export function SubscriptionCard({ status, onUpdate }: SubscriptionCardProps) {
               {status.nextPaymentDate && status.autoRenew && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Следующее списание:</span>
-                  <span>{new Date(status.nextPaymentDate).toLocaleDateString('ru-RU')} - 1990₽</span>
+                  <span>{new Date(status.nextPaymentDate).toLocaleDateString('ru-RU')} - 1995₽</span>
                 </div>
               )}
 
@@ -161,10 +161,13 @@ export function SubscriptionCard({ status, onUpdate }: SubscriptionCardProps) {
 
         <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
           <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-3xl font-bold">1990₽</span>
+            <span className="text-3xl font-bold">3990₽</span>
             <span className="text-muted-foreground">/месяц</span>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground mb-1">
+            Оплата каждые 14 дней — 1995₽
+          </p>
+          <p className="text-xs text-muted-foreground">
             Автопродление, отмена в любой момент
           </p>
         </div>

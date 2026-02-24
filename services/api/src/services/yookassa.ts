@@ -58,14 +58,14 @@ export async function createRecurrentPayment({
         return_url: returnUrl,
       },
       description,
-      // save_payment_method: true, // TODO: Enable after YooKassa activates recurring payments
+      save_payment_method: true, // Enabled for bi-weekly auto-payments
       receipt: {
         customer: {
           email: 'customer@example.com', // TODO: Use real user email
         },
         items: [
           {
-            description: 'Premium подписка AI Chat Platform - 1 месяц',
+            description: 'Premium подписка AI Chat Platform - биллинг каждые 14 дней',
             quantity: '1',
             amount: {
               value: amount.toFixed(2),
