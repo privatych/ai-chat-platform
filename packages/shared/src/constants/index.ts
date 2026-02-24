@@ -40,3 +40,6 @@ export const SUBSCRIPTION_PLANS = {
     name: 'Premium',
   },
 } as const;
+
+// Image models configuration
+export * from './image-models';
