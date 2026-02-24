@@ -72,6 +72,8 @@ export async function createRecurrentPayment({
               currency: 'RUB',
             },
             vat_code: 1, // НДС не облагается
+            payment_subject: 'service', // Услуга
+            payment_mode: 'full_prepayment', // Полная предоплата
           },
         ],
       },
