@@ -82,10 +82,6 @@ export function UserMenu({ onLogout }: UserMenuProps) {
     toast.info('Настройки скоро будут доступны');
   };
 
-  const handleUpgradeToPremium = () => {
-    toast.info('Страница оплаты скоро будет доступна');
-  };
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -172,10 +168,12 @@ export function UserMenu({ onLogout }: UserMenuProps) {
           </div>
 
           {!isPremium && (
-            <Button className="w-full" size="sm" variant="default" onClick={handleUpgradeToPremium}>
-              <Crown className="mr-2 h-4 w-4" />
-              Перейти на Premium
-            </Button>
+            <Link href="/subscription">
+              <Button className="w-full" size="sm" variant="default">
+                <Crown className="mr-2 h-4 w-4" />
+                Перейти на Premium
+              </Button>
+            </Link>
           )}
         </div>
 
