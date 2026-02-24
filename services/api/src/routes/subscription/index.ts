@@ -3,6 +3,7 @@ import { authenticate } from '../../plugins/jwt';
 import { createPaymentHandler } from './create-payment';
 import { statusHandler } from './status';
 import { webhookHandler } from './webhook';
+import { cancelHandler } from './cancel';
 
 export async function subscriptionRoutes(app: FastifyInstance) {
   // Webhook route MUST be registered BEFORE auth hook (no auth for webhooks)
@@ -24,4 +25,7 @@ export async function subscriptionRoutes(app: FastifyInstance) {
 
   // Get subscription status
   app.get('/status', statusHandler);
+
+  // Cancel subscription (disable auto-renewal)
+  app.post('/cancel', cancelHandler);
 }
