@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,8 @@ interface ImageGeneratorProps {
   limit: number;
   loading: boolean;
   onGenerate: (params: any) => Promise<void>;
+  initialPrompt?: string;
+  initialModel?: string;
 }
 
 export function ImageGenerator({
@@ -22,15 +24,30 @@ export function ImageGenerator({
   limit,
   loading,
   onGenerate,
+  initialPrompt,
+  initialModel,
 }: ImageGeneratorProps) {
   const [prompt, setPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState('');
-  const [selectedModel, setSelectedModel] = useState('flux-1-schnell');
+  const [selectedModel, setSelectedModel] = useState('black-forest-labs/flux.2-klein-4b');
   const [parameters, setParameters] = useState({
     width: 1024,
     height: 1024,
     steps: 20,
   });
+
+  // Update prompt and model when regenerating from history
+  useEffect(() => {
+    if (initialPrompt) {
+      setPrompt(initialPrompt);
+    }
+  }, [initialPrompt]);
+
+  useEffect(() => {
+    if (initialModel) {
+      setSelectedModel(initialModel);
+    }
+  }, [initialModel]);
 
   const canGenerate = usageToday < limit && prompt.trim().length > 0 && !loading;
 
@@ -91,10 +108,7 @@ export function ImageGenerator({
 
         {/* Advanced Parameters (Premium only) */}
         {tier === 'premium' && (
-          <ImageParameters
-            value={parameters}
-            onChange={setParameters}
-          />
+          <ImageParameters />
         )}
 
         {/* Generate Button */}

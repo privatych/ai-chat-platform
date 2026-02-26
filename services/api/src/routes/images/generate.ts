@@ -2,8 +2,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { generateImage } from '../../services/openrouter-image';
 import { saveImage } from '../../services/image-storage';
 import { checkImageLimit } from '../../middleware/image-limit';
-import { db } from '@ai-chat/database';
-import { imageGenerations } from '@ai-chat/database/schema';
+import { db, imageGenerations } from '@ai-chat/database';
 import { IMAGE_LIMITS } from '@ai-chat/shared';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -20,7 +19,20 @@ export async function generateHandler(
   reply: FastifyReply
 ) {
   try {
-    const userId = (request.user as any).id;
+    // Debug logging
+    console.log('[Generate] request.user:', JSON.stringify(request.user, null, 2));
+
+    const userId = (request.user as any).userId;
+    console.log('[Generate] Extracted userId:', userId);
+
+    // Check if userId exists
+    if (!userId) {
+      console.error('[Generate] ERROR: userId is undefined! Full user object:', request.user);
+      return reply.code(401).send({
+        error: 'Authentication token is invalid or outdated. Please log out and log back in to get a fresh token.'
+      });
+    }
+
     const tier = (request.user as any).subscriptionTier as 'free' | 'premium';
     const { model, prompt, negativePrompt, width = 1024, height = 1024 } = request.body;
 
@@ -47,7 +59,7 @@ export async function generateHandler(
     }
 
     // Check daily limit
-    await checkImageLimit(userId, tier);
+    await checkImageLimit(userId);
 
     // Generate image
     const generationId = uuidv4();
@@ -60,9 +72,14 @@ export async function generateHandler(
     });
 
     // Save image to local storage
-    const imageUrl = await saveImage(result.imageUrl, userId, generationId);
+    const savedPath = await saveImage(result.imageUrl, userId, generationId);
 
-    // Save to database
+    // Convert storage path to API URL path
+    // savedPath format: /uploads/images/userId/filename.png
+    // API URL format: /api/images/userId/filename.png
+    const apiImagePath = savedPath.replace('/uploads/images/', '/api/images/');
+
+    // Save to database with storage path
     await db.insert(imageGenerations).values({
       id: generationId,
       userId,
@@ -71,7 +88,7 @@ export async function generateHandler(
       negativePrompt: negativePrompt || null,
       width,
       height,
-      imageUrl,
+      imageUrl: savedPath, // Store original path for file operations
       cost: result.cost.toString(),
     });
 
@@ -79,7 +96,7 @@ export async function generateHandler(
       success: true,
       data: {
         id: generationId,
-        imageUrl: `https://ai.itoq.ru${imageUrl}`,
+        imageUrl: `https://ai.itoq.ru${apiImagePath}`, // Use API path for browser
         cost: result.cost,
       },
     });

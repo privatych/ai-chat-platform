@@ -18,6 +18,7 @@ export default function ImagesPage() {
   const [usageToday, setUsageToday] = useState(0);
   const [currentGeneration, setCurrentGeneration] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [regeneratePrompt, setRegeneratePrompt] = useState<{ prompt: string; model: string } | null>(null);
 
   const tier = (user?.subscriptionTier || 'free') as 'free' | 'premium';
   const limit = tier === 'premium' ? 30 : 10;
@@ -37,7 +38,7 @@ export default function ImagesPage() {
     const response = await apiClient.request('/api/images/history?limit=100');
     if (response.success) {
       const today = new Date().setHours(0, 0, 0, 0);
-      const todayGenerations = response.data.filter(
+      const todayGenerations = (response.data as any[]).filter(
         (g: any) => new Date(g.createdAt).setHours(0, 0, 0, 0) === today
       );
       setUsageToday(todayGenerations.length);
@@ -55,12 +56,21 @@ export default function ImagesPage() {
       if (response.success) {
         setCurrentGeneration(response.data);
         setUsageToday(prev => prev + 1);
+        // Clear regenerate prompt after successful generation
+        setRegeneratePrompt(null);
       }
     } catch (error: any) {
       console.error('Generation failed:', error);
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleRegenerate(prompt: string, model: string) {
+    // Set the prompt and model for regeneration
+    setRegeneratePrompt({ prompt, model });
+    // Scroll to top to show the generator
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   if (!hasHydrated) {
@@ -133,6 +143,8 @@ export default function ImagesPage() {
             limit={limit}
             loading={loading}
             onGenerate={handleGenerate}
+            initialPrompt={regeneratePrompt?.prompt}
+            initialModel={regeneratePrompt?.model}
           />
 
           {/* Right: Preview */}
@@ -140,7 +152,10 @@ export default function ImagesPage() {
         </div>
 
         {/* History */}
-        <GenerationHistory onReload={loadUsageStats} />
+        <GenerationHistory
+          onReload={loadUsageStats}
+          onRegenerate={handleRegenerate}
+        />
       </div>
     </div>
   );

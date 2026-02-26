@@ -1,6 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { db } from '@ai-chat/database';
-import { imageGenerations } from '@ai-chat/database/schema';
+import { db, imageGenerations } from '@ai-chat/database';
 import { eq, desc } from 'drizzle-orm';
 
 interface HistoryQuery {
@@ -12,7 +11,7 @@ export async function historyHandler(
   request: FastifyRequest<{ Querystring: HistoryQuery }>,
   reply: FastifyReply
 ) {
-  const userId = (request.user as any).id;
+  const userId = (request.user as any).userId;
   const limit = parseInt(request.query.limit || '20', 10);
   const offset = parseInt(request.query.offset || '0', 10);
 
@@ -26,9 +25,16 @@ export async function historyHandler(
 
   return reply.send({
     success: true,
-    data: generations.map(g => ({
-      ...g,
-      imageUrl: `https://ai.itoq.ru${g.imageUrl}`,
-    })),
+    data: generations.map(g => {
+      // Convert storage path to API URL path
+      // Storage: /uploads/images/userId/filename.png
+      // API URL: /api/images/userId/filename.png
+      const apiImagePath = g.imageUrl.replace('/uploads/images/', '/api/images/');
+      
+      return {
+        ...g,
+        imageUrl: `https://ai.itoq.ru${apiImagePath}`,
+      };
+    }),
   });
 }
