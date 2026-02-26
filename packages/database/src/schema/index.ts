@@ -8,3 +8,4 @@ export * from './context-sections';
 export * from './usage-logs';
 export * from './model-pricing';
 export * from './admin-actions';
+export * from './image-generations';
