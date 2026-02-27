@@ -108,7 +108,10 @@ export function ImageGenerator({
 
         {/* Advanced Parameters (Premium only) */}
         {tier === 'premium' && (
-          <ImageParameters />
+          <ImageParameters
+            value={parameters}
+            onChange={setParameters}
+          />
         )}
 
         {/* Generate Button */}

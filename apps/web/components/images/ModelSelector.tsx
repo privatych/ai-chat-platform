@@ -1,6 +1,6 @@
 'use client';
 
-import { IMAGE_MODELS } from '@ai-chat/shared/constants/image-models';
+import { IMAGE_MODELS } from '@ai-chat/shared';
 import {
   Select,
   SelectContent,

@@ -12,6 +12,7 @@ export * from './schema/context-sections';
 export * from './schema/usage-logs';
 export * from './schema/model-pricing';
 export * from './schema/admin-actions';
+export * from './schema/image-generations';
 
 // Database connection
 const connectionString = process.env.DATABASE_URL!;
