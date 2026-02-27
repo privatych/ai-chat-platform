@@ -9,12 +9,14 @@ import { ImagePreview } from '@/components/images/ImagePreview';
 import { GenerationHistory } from '@/components/images/GenerationHistory';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Crown, Sparkles } from 'lucide-react';
+import { Crown, Sparkles, Brain, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { UserMenu } from '@/components/user-menu';
 
 export default function ImagesPage() {
   const router = useRouter();
-  const { user, isAuthenticated, hasHydrated } = useAuthStore();
+  const { user, isAuthenticated, hasHydrated, clearAuth } = useAuthStore();
   const [usageToday, setUsageToday] = useState(0);
   const [currentGeneration, setCurrentGeneration] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -22,6 +24,11 @@ export default function ImagesPage() {
 
   const tier = (user?.subscriptionTier || 'free') as 'free' | 'premium';
   const limit = tier === 'premium' ? 30 : 10;
+
+  const handleLogout = () => {
+    clearAuth();
+    router.push('/');
+  };
 
   useEffect(() => {
     if (hasHydrated && !isAuthenticated) {
@@ -102,15 +109,38 @@ export default function ImagesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <div className="container max-w-7xl mx-auto py-8 px-4">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">AI Image Generation</h1>
-          <p className="text-muted-foreground">
-            Create stunning images with cutting-edge AI models
-          </p>
+    <div className="flex flex-col min-h-screen">
+      {/* Top Navigation */}
+      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex h-16 items-center px-4 gap-4">
+          <Link href="/" className="flex items-center gap-2">
+            <Brain className="h-6 w-6 text-primary" />
+            <span className="text-xl font-bold">AI Chat Platform</span>
+          </Link>
+
+          <div className="ml-auto flex items-center gap-3">
+            <Link href="/chat">
+              <Button variant="ghost" size="sm">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Chat
+              </Button>
+            </Link>
+            <ThemeToggle />
+            <UserMenu onLogout={handleLogout} />
+          </div>
         </div>
+      </nav>
+
+      {/* Main Content */}
+      <div className="flex-1 bg-gradient-to-b from-background to-muted/20">
+        <div className="container max-w-7xl mx-auto py-8 px-4">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">AI Image Generation</h1>
+            <p className="text-muted-foreground">
+              Create stunning images with cutting-edge AI models
+            </p>
+          </div>
 
         {/* Usage Stats Card */}
         <Card className="mb-6">
@@ -151,11 +181,12 @@ export default function ImagesPage() {
           <ImagePreview generation={currentGeneration} loading={loading} />
         </div>
 
-        {/* History */}
-        <GenerationHistory
-          onReload={loadUsageStats}
-          onRegenerate={handleRegenerate}
-        />
+          {/* History */}
+          <GenerationHistory
+            onReload={loadUsageStats}
+            onRegenerate={handleRegenerate}
+          />
+        </div>
       </div>
     </div>
   );
