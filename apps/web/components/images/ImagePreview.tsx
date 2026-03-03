@@ -3,8 +3,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Download, Loader2, ImageIcon, Calendar, DollarSign } from 'lucide-react';
+import { Download, Loader2, ImageIcon, Calendar, DollarSign, Maximize2 } from 'lucide-react';
 import Image from 'next/image';
+import { useState } from 'react';
 
 interface ImagePreviewProps {
   generation: any;
@@ -12,6 +13,8 @@ interface ImagePreviewProps {
 }
 
 export function ImagePreview({ generation, loading }: ImagePreviewProps) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   function handleDownload() {
     if (!generation?.imageUrl) return;
 
@@ -79,7 +82,7 @@ export function ImagePreview({ generation, loading }: ImagePreviewProps) {
                 {/* Prompt */}
                 <div>
                   <p className="text-muted-foreground mb-1">Prompt</p>
-                  <p className="text-sm bg-muted p-2 rounded-md break-words">
+                  <p className="text-sm bg-muted p-3 rounded-md break-words max-h-32 overflow-y-auto">
                     {generation.prompt}
                   </p>
                 </div>
@@ -144,7 +147,10 @@ export function ImagePreview({ generation, loading }: ImagePreviewProps) {
 
           {/* Right: Image */}
           <div className="order-1 lg:order-2">
-            <div className="relative aspect-square rounded-lg overflow-hidden bg-muted border">
+            <div
+              className="relative aspect-square rounded-lg overflow-hidden bg-muted border cursor-pointer hover:ring-2 hover:ring-primary transition-all group"
+              onClick={() => setIsFullscreen(true)}
+            >
               <Image
                 src={generation.imageUrl}
                 alt={generation.prompt}
@@ -152,9 +158,38 @@ export function ImagePreview({ generation, loading }: ImagePreviewProps) {
                 className="object-contain"
                 priority
               />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <Maximize2 className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Fullscreen Modal */}
+        {isFullscreen && (
+          <div
+            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+            onClick={() => setIsFullscreen(false)}
+          >
+            <div className="relative w-full h-full max-w-7xl max-h-[90vh]">
+              <Image
+                src={generation.imageUrl}
+                alt={generation.prompt}
+                fill
+                className="object-contain"
+                priority
+              />
+              <Button
+                onClick={() => setIsFullscreen(false)}
+                variant="secondary"
+                size="sm"
+                className="absolute top-4 right-4"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
