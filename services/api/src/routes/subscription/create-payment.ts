@@ -19,8 +19,8 @@ export async function createPaymentHandler(
   const userId = req.user.userId;
 
   try {
-    const amount = 1995;
-    const description = 'Premium подписка AI Chat Platform - биллинг каждые 14 дней';
+    const amount = 990;
+    const description = 'Premium подписка AI Chat Platform на 1 месяц';
     const frontendUrl = getEnv('FRONTEND_URL');
     const returnUrl = `${frontendUrl}/subscription/success`;
 

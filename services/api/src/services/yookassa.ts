@@ -60,14 +60,13 @@ export async function createRecurrentPayment({
         return_url: returnUrl,
       },
       description,
-      save_payment_method: true, // Enabled for bi-weekly auto-payments
       receipt: {
         customer: {
           email,
         },
         items: [
           {
-            description: 'Premium подписка AI Chat Platform - биллинг каждые 14 дней',
+            description: 'Premium подписка AI Chat Platform на 1 месяц',
             quantity: '1',
             amount: {
               value: amount.toFixed(2),
