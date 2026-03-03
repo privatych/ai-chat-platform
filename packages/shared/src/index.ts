@@ -1,2 +1,2 @@
-export * from './types/index';
-export * from './constants/index';
+export * from './types';
+export * from './constants';
