@@ -48,6 +48,7 @@ export async function createPaymentHandler(
         description,
         returnUrl,
         userId,
+        email: req.user.email,
       }, idempotenceKey);
 
       // Save pending subscription in database

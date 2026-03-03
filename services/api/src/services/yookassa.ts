@@ -30,6 +30,7 @@ export interface CreateRecurrentPaymentParams {
   description: string;
   returnUrl: string;
   userId: string;
+  email: string;
 }
 
 export async function createRecurrentPayment({
@@ -37,6 +38,7 @@ export async function createRecurrentPayment({
   description,
   returnUrl,
   userId,
+  email,
 }: CreateRecurrentPaymentParams, idempotenceKey?: string): Promise<Payment> {
   try {
     // Validate inputs
@@ -61,7 +63,7 @@ export async function createRecurrentPayment({
       save_payment_method: true, // Enabled for bi-weekly auto-payments
       receipt: {
         customer: {
-          email: 'customer@example.com', // TODO: Use real user email
+          email,
         },
         items: [
           {
