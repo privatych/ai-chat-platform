@@ -17,6 +17,24 @@ interface GenerateImageResponse {
   cost: number;
 }
 
+// Helper to convert width/height to aspect ratio
+function getAspectRatio(width: number, height: number): string {
+  const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b);
+  const divisor = gcd(width, height);
+  const w = width / divisor;
+  const h = height / divisor;
+  return `${w}:${h}`;
+}
+
+// Helper to determine image size
+function getImageSize(width: number, height: number): string {
+  const pixels = width * height;
+  if (pixels >= 4000000) return '4K'; // 4K ~= 2048x2048 or higher
+  if (pixels >= 2000000) return '2K'; // 2K ~= 1448x1448 or higher
+  if (pixels >= 500000) return '1K';  // 1K ~= 1024x1024
+  return '0.5K';
+}
+
 export async function generateImage(
   req: GenerateImageRequest
 ): Promise<GenerateImageResponse> {
@@ -26,9 +44,16 @@ export async function generateImage(
     model: req.model,
     prompt: req.prompt.substring(0, 50) + '...',
     resolution: `${req.width}x${req.height}`,
+    aspectRatio: getAspectRatio(req.width, req.height),
+    imageSize: getImageSize(req.width, req.height),
   });
 
   try {
+    // Build prompt with negative prompt if provided
+    const fullPrompt = req.negativePrompt
+      ? `${req.prompt}\n\nNegative prompt: ${req.negativePrompt}`
+      : req.prompt;
+
     // OpenRouter uses chat completions endpoint with modalities for image generation
     const response = await axios.post(
       `${OPENROUTER_API}/chat/completions`,
@@ -37,21 +62,12 @@ export async function generateImage(
         messages: [
           {
             role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: req.prompt,
-              },
-            ],
+            content: fullPrompt,
           },
         ],
         modalities: ['image'], // Request image output
-        image_config: {
-          width: req.width,
-          height: req.height,
-          negative_prompt: req.negativePrompt,
-          steps: req.steps || 20,
-        },
+        aspect_ratio: getAspectRatio(req.width, req.height),
+        image_size: getImageSize(req.width, req.height),
       },
       {
         headers: {
@@ -60,7 +76,7 @@ export async function generateImage(
           'X-Title': 'AI Chat Platform',
           'Content-Type': 'application/json',
         },
-        timeout: 60000,
+        timeout: 90000, // 90 seconds for image generation
       }
     );
 
@@ -123,20 +139,20 @@ export async function generateImage(
 }
 
 export function calculateCost(model: string, width: number, height: number): number {
-  const megapixels = (width * height) / 1_000_000;
-
+  // Cost per completion token from OpenRouter API
   const modelCosts: Record<string, number> = {
-    // Free tier models
-    'black-forest-labs/flux.2-klein-4b': 0.01,
-    'google/gemini-2.5-flash-image': 0.005,
-    'sourceful/riverflow-v2-fast': 0.008,
-    // Premium tier models
-    'black-forest-labs/flux.2-max': 0.07,
-    'black-forest-labs/flux.2-pro': 0.03,
-    'black-forest-labs/flux.2-flex': 0.025,
-    'openai/gpt-5-image': 0.08,
-    'sourceful/riverflow-v2-pro': 0.02,
+    // Google models (per completion token)
+    'google/gemini-2.5-flash-image': 0.0000025,
+    'google/gemini-3.1-flash-image-preview': 0.0000015,
+    'google/gemini-3-pro-image-preview': 0.000012,
+    // OpenAI models (per completion token)
+    'openai/gpt-5-image-mini': 0.000002,
+    'openai/gpt-5-image': 0.00001,
   };
 
-  return (modelCosts[model] || 0.01) * megapixels;
+  // Estimate ~1000 completion tokens for image generation
+  const estimatedTokens = 1000;
+  const costPerToken = modelCosts[model] || 0.000001;
+
+  return costPerToken * estimatedTokens;
 }

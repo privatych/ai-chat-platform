@@ -9,89 +9,59 @@ export interface ImageModel {
   badge?: string;
 }
 
-// Free tier models - fast and affordable via OpenRouter
+// Free tier models - supported by OpenRouter
 export const FREE_IMAGE_MODELS: ImageModel[] = [
-  {
-    id: 'black-forest-labs/flux.2-klein-4b',
-    name: 'FLUX.2 Klein 4B',
-    provider: 'Black Forest Labs',
-    cost: 0.01,
-    speed: 'ultra-fast',
-    category: 'general',
-    description: 'Самая быстрая модель FLUX.2, отличное соотношение скорости и качества',
-  },
   {
     id: 'google/gemini-2.5-flash-image',
     name: 'Gemini 2.5 Flash Image',
     provider: 'Google',
-    cost: 0.005,
-    speed: 'fast',
+    cost: 0.0000025,
+    speed: 'ultra-fast',
     category: 'general',
-    description: 'Быстрая генерация от Google, поддержка текста и редактирование',
+    description: 'Быстрая генерация от Google, отличное качество для базовых задач',
   },
   {
-    id: 'sourceful/riverflow-v2-fast',
-    name: 'Riverflow V2 Fast',
-    provider: 'Sourceful',
-    cost: 0.008,
+    id: 'google/gemini-3.1-flash-image-preview',
+    name: 'Gemini 3.1 Flash Image',
+    provider: 'Google',
+    cost: 0.0000015,
     speed: 'fast',
     category: 'general',
-    description: 'Быстрая модель для продакшен-деплоев',
+    description: 'Улучшенная версия с лучшим качеством и скоростью',
+    badge: 'Recommended',
   },
 ];
 
 // Premium tier models - highest quality via OpenRouter
 export const PREMIUM_IMAGE_MODELS: ImageModel[] = [
-  // Flagship FLUX models
   {
-    id: 'black-forest-labs/flux.2-max',
-    name: 'FLUX.2 Max',
-    provider: 'Black Forest Labs',
-    cost: 0.07,
-    speed: 'slow',
+    id: 'google/gemini-3-pro-image-preview',
+    name: 'Gemini 3 Pro Image',
+    provider: 'Google',
+    cost: 0.000012,
+    speed: 'medium',
     category: 'flagship',
-    description: 'Топовая модель FLUX - максимальное качество и детализация',
+    description: 'Топовая модель Google с максимальным качеством и поддержкой 2K/4K',
     badge: 'Best Quality',
   },
   {
-    id: 'black-forest-labs/flux.2-pro',
-    name: 'FLUX.2 Pro',
-    provider: 'Black Forest Labs',
-    cost: 0.03,
-    speed: 'medium',
+    id: 'openai/gpt-5-image-mini',
+    name: 'GPT-5 Image Mini',
+    provider: 'OpenAI',
+    cost: 0.000002,
+    speed: 'fast',
     category: 'flagship',
-    description: 'Профессиональное качество с отличной скоростью',
-    badge: 'Recommended',
+    description: 'Быстрая модель OpenAI с отличным пониманием инструкций',
   },
-  {
-    id: 'black-forest-labs/flux.2-flex',
-    name: 'FLUX.2 Flex',
-    provider: 'Black Forest Labs',
-    cost: 0.025,
-    speed: 'medium',
-    category: 'flagship',
-    description: 'Отлично работает с текстом, типографикой и мелкими деталями',
-  },
-  // OpenAI
   {
     id: 'openai/gpt-5-image',
     name: 'GPT-5 Image',
     provider: 'OpenAI',
-    cost: 0.08,
+    cost: 0.00001,
     speed: 'medium',
     category: 'flagship',
-    description: 'Новейшая модель OpenAI с превосходным пониманием инструкций',
+    description: 'Топовая модель OpenAI для профессиональной генерации',
     badge: 'Premium',
-  },
-  // Sourceful Pro
-  {
-    id: 'sourceful/riverflow-v2-pro',
-    name: 'Riverflow V2 Pro',
-    provider: 'Sourceful',
-    cost: 0.02,
-    speed: 'medium',
-    category: 'photorealistic',
-    description: 'SOTA производительность для генерации и редактирования',
   },
 ];
 
@@ -108,12 +78,12 @@ export const IMAGE_LIMITS = {
     features: ['text-to-image'],
   },
   premium: {
-    dailyLimit: 30,
+    dailyLimit: 100,
     maxResolution: 2048,
     allowedModels: [
       ...FREE_IMAGE_MODELS.map(m => m.id),
       ...PREMIUM_IMAGE_MODELS.map(m => m.id),
     ],
-    features: ['text-to-image', 'editing'],
+    features: ['text-to-image', 'high-resolution'],
   },
 };
