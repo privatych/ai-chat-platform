@@ -30,14 +30,26 @@ export async function createPaymentHandler(
   }
 
   try {
+    console.log(`[Subscription] Starting payment creation for user ${userId} (${userEmail})`);
+    
     // Create payment in YooKassa
     const frontendUrl = getEnv('FRONTEND_URL', 'https://ai.itoq.ru');
-    const payment = await createRecurrentPayment({
+    const paymentPayload = {
       amount: 1990,
       description: 'Premium подписка AI Chat Platform - 1 месяц',
       returnUrl: `${frontendUrl}/subscription/success`,
       userId,
-    });
+    };
+    
+    console.log(`[Subscription] Yookassa payload:`, JSON.stringify(paymentPayload, null, 2));
+    
+    const payment = await createRecurrentPayment(paymentPayload);
+
+    console.log(`[Subscription] Yookassa response successful:`, JSON.stringify({
+      id: payment.id,
+      status: payment.status,
+      confirmation: payment.confirmation
+    }));
 
     // Save pending subscription
     await db.insert(subscriptions).values({
@@ -58,7 +70,13 @@ export async function createPaymentHandler(
       },
     });
   } catch (error: any) {
-    console.error('[Subscription] Failed to create payment:', error);
+    console.error(`[Subscription] Failed to create Yookassa payment for ${userId}:`);
+    console.error(`[Subscription] Error details:`, {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        stack: error.stack
+    });
 
     return reply.code(500).send({
       success: false,
