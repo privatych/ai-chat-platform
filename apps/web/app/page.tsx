@@ -6,9 +6,31 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
 import { Brain, Zap, Shield, DollarSign, Sparkles, MessageSquare, ArrowRight, Check } from "lucide-react";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { apiClient } from "@/lib/api-client";
+import { toast } from "sonner";
+import { useState } from "react";
 
 export default function Home() {
   const { isAuthenticated, hasHydrated } = useAuthStore();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleUpgradeToPremium = async () => {
+    try {
+      setIsProcessing(true);
+      toast.loading('Создание платежа...', { id: 'payment' });
+      const response = await apiClient.createSubscriptionPayment();
+      if (response.success && response.data?.confirmationUrl) {
+        toast.success('Платёж создан, перенаправляем...', { id: 'payment' });
+        window.location.href = response.data.confirmationUrl;
+      } else {
+        toast.error(response.error?.message || 'Не удалось создать платёж', { id: 'payment' });
+        setIsProcessing(false);
+      }
+    } catch (err) {
+      toast.error('Произошла ошибка при создании платежа', { id: 'payment' });
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -398,11 +420,9 @@ export default function Home() {
                   ))}
                 </div>
                 {hasHydrated && isAuthenticated ? (
-                  <Link href="/chat" className="block">
-                    <Button className="w-full" size="lg">
-                      Перейти в чат
-                    </Button>
-                  </Link>
+                  <Button className="w-full" size="lg" onClick={handleUpgradeToPremium} disabled={isProcessing}>
+                    {isProcessing ? 'Загрузка...' : 'Оформить Premium'}
+                  </Button>
                 ) : (
                   <Link href="/register" className="block">
                     <Button className="w-full" size="lg">
