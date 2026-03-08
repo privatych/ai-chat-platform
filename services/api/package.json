@@ -13,6 +13,7 @@
     "test:run": "vitest run"
   },
   "dependencies": {
+    "@a2seven/yoo-checkout": "^1.1.4",
     "@ai-chat/database": "workspace:*",
     "@ai-chat/shared": "workspace:*",
     "@fastify/cors": "^10.0.1",

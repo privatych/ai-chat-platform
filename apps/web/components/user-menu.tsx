@@ -80,8 +80,19 @@ export function UserMenu({ onLogout }: UserMenuProps) {
     toast.info('Настройки скоро будут доступны');
   };
 
-  const handleUpgradeToPremium = () => {
-    toast.info('Страница оплаты скоро будет доступна');
+  const handleUpgradeToPremium = async () => {
+    try {
+      toast.loading('Создание платежа...', { id: 'payment' });
+      const response = await apiClient.createSubscriptionPayment();
+      if (response.success && response.data?.confirmationUrl) {
+        toast.success('Платёж создан, перенаправляем...', { id: 'payment' });
+        window.location.href = response.data.confirmationUrl;
+      } else {
+        toast.error(response.error?.message || 'Не удалось создать платёж', { id: 'payment' });
+      }
+    } catch (err) {
+      toast.error('Произошла ошибка при создании платежа', { id: 'payment' });
+    }
   };
 
   return (

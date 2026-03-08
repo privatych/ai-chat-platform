@@ -256,6 +256,13 @@ class ApiClient {
       }
     }
   }
+
+  // Subscription endpoints
+  async createSubscriptionPayment() {
+    return this.request<{ confirmationUrl: string; paymentId: string; amount: number }>('/api/subscription/create-payment', {
+      method: 'POST',
+    });
+  }
 }
 
 export const apiClient = new ApiClient();

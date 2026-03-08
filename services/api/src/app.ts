@@ -7,6 +7,7 @@ import { authRoutes } from './routes/auth';
 import { chatRoutes } from './routes/chat';
 import { projectRoutes } from './routes/projects';
 import { adminRoutes } from './routes/admin';
+import { subscriptionRoutes } from './routes/subscription';
 
 export async function buildApp() {
   const app = Fastify({
@@ -50,6 +51,7 @@ export async function buildApp() {
   await app.register(chatRoutes, { prefix: '/api/chat' });
   await app.register(projectRoutes, { prefix: '/api' });
   await app.register(adminRoutes, { prefix: '/api/admin' });
+  await app.register(subscriptionRoutes, { prefix: '/api/subscription' });
 
   // Global error handler
   app.setErrorHandler((error, request, reply) => {

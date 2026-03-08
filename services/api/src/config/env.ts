@@ -28,6 +28,21 @@ export function validateEnv() {
       validator: (value) => value.length > 0,
       errorMessage: 'OPENROUTER_API_KEY cannot be empty',
     },
+    {
+      key: 'YOOKASSA_SHOP_ID',
+      validator: (value) => value.length > 0,
+      errorMessage: 'YOOKASSA_SHOP_ID cannot be empty',
+    },
+    {
+      key: 'YOOKASSA_SECRET_KEY',
+      validator: (value) => value.length > 0,
+      errorMessage: 'YOOKASSA_SECRET_KEY cannot be empty',
+    },
+    {
+      key: 'YOOKASSA_WEBHOOK_SECRET',
+      validator: (value) => value.length > 0,
+      errorMessage: 'YOOKASSA_WEBHOOK_SECRET cannot be empty',
+    },
   ];
 
   const errors: string[] = [];
