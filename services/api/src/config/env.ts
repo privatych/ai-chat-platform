@@ -63,6 +63,7 @@ export function validateEnv() {
     { key: 'HOST', default: '0.0.0.0' },
     { key: 'NODE_ENV', default: 'development' },
     { key: 'FRONTEND_URL', default: 'http://localhost:3000' },
+    { key: 'YOOKASSA_HTTP_PROXY', default: 'http://62.113.115.104:8888' },
   ];
 
   for (const opt of optionalWithDefaults) {
