@@ -1,10 +1,17 @@
 import { YooCheckout, ICreatePayment } from '@a2seven/yoo-checkout';
 import { getEnv } from '../config/env';
 
-const yookassa = new YooCheckout({
-  shopId: getEnv('YOOKASSA_SHOP_ID'),
-  secretKey: getEnv('YOOKASSA_SECRET_KEY'),
-});
+let yookassaClient: YooCheckout | null = null;
+
+function getYookassa() {
+  if (!yookassaClient) {
+    yookassaClient = new YooCheckout({
+      shopId: getEnv('YOOKASSA_SHOP_ID'),
+      secretKey: getEnv('YOOKASSA_SECRET_KEY'),
+    });
+  }
+  return yookassaClient;
+}
 
 interface CreateRecurrentPaymentParams {
   amount: number;
@@ -36,12 +43,12 @@ export async function createRecurrentPayment({
     },
   };
 
-  const createdPayment = await yookassa.createPayment(payment);
+  const createdPayment = await getYookassa().createPayment(payment);
   return createdPayment;
 }
 
 export async function getPaymentInfo(paymentId: string) {
-  return await yookassa.getPayment(paymentId);
+  return await getYookassa().getPayment(paymentId);
 }
 
 export async function cancelPayment(paymentId: string) {
@@ -53,4 +60,4 @@ export async function cancelPayment(paymentId: string) {
   throw new Error("Not implemented");
 }
 
-export { yookassa };
+export { getYookassa };
